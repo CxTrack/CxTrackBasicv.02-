@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { useCustomerStore } from '@/stores/customerStore';
+import toast from 'react-hot-toast';
 
 interface Message {
   id: string;
@@ -64,10 +66,15 @@ export const CoPilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setCurrentContext(context);
   }, []);
 
-  const generateResponse = async (userMessage: string): Promise<string> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  const { customers, addNote, fetchCustomers } = useCustomerStore();
 
+  const generateResponse = async (userMessage: string): Promise<string> => {
     const lowerMessage = userMessage.toLowerCase();
+
+    // HANDLED IN SEND_MESSAGE FOR ACTIONS
+    if (lowerMessage.includes('add a note') || lowerMessage.includes('add note')) {
+      return "Thinking..."; // Placeholder, actual logic in sendMessage
+    }
 
     if (lowerMessage.includes('customer') || lowerMessage.includes('clients')) {
       return "I can help you analyze your customer data. Based on your CRM, I see you have multiple customers with various engagement levels. Would you like me to:\n\n• Show top customers by revenue\n• Identify customers needing follow-up\n• Generate a customer health report\n\nWhat would be most helpful?";
@@ -104,31 +111,89 @@ export const CoPilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsLoading(true);
 
     try {
-      const responseContent = await generateResponse(content);
+      const lowerContent = content.toLowerCase();
 
+      // LOGIC FOR ACTIONS
+      if (lowerContent.includes('add a note') || lowerContent.includes('add note')) {
+        // Ensure customers are loaded
+        if (customers.length === 0) {
+          await fetchCustomers();
+        }
+
+        // Simple name extraction (e.g., "add a note on Manik Sharma's profile...")
+        const nameKeywords = content.split(' ');
+        let customer = null;
+
+        // Try to find a matching customer name in the query
+        for (const c of useCustomerStore.getState().customers) {
+          if (content.toLowerCase().includes(c.name.toLowerCase())) {
+            customer = c;
+            break;
+          }
+        }
+
+        if (customer) {
+          // Extract note content - everything after "that " or "note "
+          let noteContent = "";
+          if (content.includes("that ")) {
+            noteContent = content.split("that ").slice(1).join("that ").trim();
+          } else if (content.includes("note ")) {
+            noteContent = content.split("note ").slice(1).join("note ").trim();
+          } else {
+            noteContent = "Update from CoPilot";
+          }
+
+          if (noteContent) {
+            await addNote({
+              customer_id: customer.id,
+              content: noteContent
+            });
+
+            const assistantMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              content: `✅ Done! I've added that note to **${customer.name}'s** profile.\n\n**Note:** "${noteContent}"`,
+              timestamp: new Date(),
+            };
+            setMessages(prev => [...prev, assistantMessage]);
+            toast.success('Note added successfully');
+            return;
+          }
+        } else {
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: "I couldn't find a customer matching that name in your CRM. Could you please double-check the name or navigate to their profile so I can help?",
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, assistantMessage]);
+          return;
+        }
+      }
+
+      // Default response generation
+      const responseContent = await generateResponse(content);
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: responseContent,
         timestamp: new Date(),
       };
-
       setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error('Error generating response:', error);
 
+    } catch (error) {
+      console.error('Error in CoPilot sendMessage:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: "I apologize, but I encountered an error processing your request. Please try again or rephrase your question.",
         timestamp: new Date(),
       };
-
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [customers, addNote, fetchCustomers]);
 
   return (
     <CoPilotContext.Provider

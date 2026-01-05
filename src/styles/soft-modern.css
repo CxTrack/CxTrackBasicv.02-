@@ -1,204 +1,419 @@
-/* Soft Modern Theme - Cohesive Warm Palette with Neumorphic Design */
+/* Elite Soft-Modern Theme - Apple-Inspired Minimalism */
+
+/* ============================================
+   DESIGN TOKENS
+   ============================================ */
+
+:root {
+  /* Background Layers */
+  --sm-bg-base: #FAFAF9;
+  --sm-bg-surface: #FFFFFF;
+  --sm-bg-elevated: #FFFFFF;
+
+  /* Text Hierarchy */
+  --sm-text-primary: #171717;
+  --sm-text-secondary: #525252;
+  --sm-text-tertiary: #A3A3A3;
+  --sm-text-disabled: #D4D4D4;
+
+  /* Borders & Dividers */
+  --sm-border-subtle: #F5F5F4;
+  --sm-border-default: #E7E5E4;
+  --sm-border-strong: #D6D3D1;
+
+  /* Accents (used sparingly) */
+  --sm-accent-primary: #3B82F6;
+  --sm-accent-success: #10B981;
+  --sm-accent-warning: #F59E0B;
+  --sm-accent-error: #EF4444;
+  --sm-accent-info: #6366F1;
+
+  /* Shadows (ultra-subtle) */
+  --sm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --sm-shadow-md: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --sm-shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+  --sm-shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.02);
+
+  /* Border Radius */
+  --sm-radius-sm: 6px;
+  --sm-radius-md: 8px;
+  --sm-radius-lg: 12px;
+  --sm-radius-xl: 16px;
+  --sm-radius-full: 9999px;
+
+  /* Spacing (4px base unit) */
+  --sm-space-xs: 4px;
+  --sm-space-sm: 8px;
+  --sm-space-md: 12px;
+  --sm-space-lg: 16px;
+  --sm-space-xl: 24px;
+  --sm-space-2xl: 32px;
+  --sm-space-3xl: 48px;
+  --sm-space-4xl: 64px;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
 
 .soft-modern {
-  background-color: #F5F3EF;
-  color: #2D2D2D;
+  background-color: var(--sm-bg-base);
+  color: var(--sm-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Muted accent colors */
-:root {
-  --sm-blue: #A8C5E8;
-  --sm-blue-dark: #90B5D8;
-  --sm-green: #B8D4C4;
-  --sm-green-dark: #A0C4B0;
-  --sm-purple: #C9B8D4;
-  --sm-purple-dark: #B5A0C4;
-  --sm-orange: #E8C9A8;
-  --sm-orange-dark: #D8B598;
+/* ============================================
+   CARDS
+   ============================================ */
+
+.soft-modern .card {
+  background: var(--sm-bg-surface);
+  border: 1px solid var(--sm-border-default);
+  border-radius: var(--sm-radius-lg);
+  box-shadow: var(--sm-shadow-sm);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Neumorphic card base */
-.soft-modern .neumorph-card {
-  background: #F8F6F2;
-  box-shadow:
-    8px 8px 16px rgba(0, 0, 0, 0.1),
-    -8px -8px 16px rgba(255, 255, 255, 0.9);
-  border-radius: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+.soft-modern .card:hover {
+  box-shadow: var(--sm-shadow-md);
 }
 
-/* Neumorphic button */
-.soft-modern .neumorph-button {
-  background: #F5F3EF;
-  box-shadow:
-    6px 6px 12px rgba(0, 0, 0, 0.08),
-    -6px -6px 12px rgba(255, 255, 255, 0.8);
-  border-radius: 1rem;
-  transition: all 0.2s ease;
+.soft-modern .card-elevated {
+  background: var(--sm-bg-elevated);
+  border: 1px solid var(--sm-border-subtle);
+  border-radius: var(--sm-radius-lg);
+  box-shadow: var(--sm-shadow-lg);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.soft-modern .btn {
+  border-radius: var(--sm-radius-md);
+  font-weight: 500;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
 }
 
-.soft-modern .neumorph-button:hover {
-  box-shadow:
-    4px 4px 8px rgba(0, 0, 0, 0.08),
-    -4px -4px 8px rgba(255, 255, 255, 0.8);
-  transform: translateY(-1px);
-}
-
-.soft-modern .neumorph-button:active {
-  box-shadow:
-    inset 4px 4px 8px rgba(0, 0, 0, 0.08),
-    inset -4px -4px 8px rgba(255, 255, 255, 0.8);
-  transform: translateY(0);
-}
-
-/* Input fields */
-.soft-modern .neumorph-input {
-  background: #F5F3EF;
-  box-shadow:
-    inset 4px 4px 8px rgba(0, 0, 0, 0.08),
-    inset -4px -4px 8px rgba(255, 255, 255, 0.8);
-  border: none;
-  border-radius: 1rem;
-  color: #2D2D2D;
-}
-
-.soft-modern .neumorph-input::placeholder {
-  color: #9CA3AF;
-}
-
-.soft-modern .neumorph-input:focus {
-  outline: none;
-  box-shadow:
-    inset 4px 4px 8px rgba(0, 0, 0, 0.08),
-    inset -4px -4px 8px rgba(255, 255, 255, 0.8),
-    0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Icon gradient backgrounds - muted accents */
-.soft-modern .icon-gradient-blue {
-  background: linear-gradient(135deg, #A8C5E8 0%, #90B5D8 100%);
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.06), -2px -2px 6px rgba(255, 255, 255, 0.8);
-}
-
-.soft-modern .icon-gradient-green {
-  background: linear-gradient(135deg, #B8D4C4 0%, #A0C4B0 100%);
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.06), -2px -2px 6px rgba(255, 255, 255, 0.8);
-}
-
-.soft-modern .icon-gradient-purple {
-  background: linear-gradient(135deg, #C9B8D4 0%, #B5A0C4 100%);
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.06), -2px -2px 6px rgba(255, 255, 255, 0.8);
-}
-
-.soft-modern .icon-gradient-orange {
-  background: linear-gradient(135deg, #E8C9A8 0%, #D8B598 100%);
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.06), -2px -2px 6px rgba(255, 255, 255, 0.8);
-}
-
-/* Icon containers */
-.soft-modern .icon-container {
-  background: rgba(255, 255, 255, 0.6);
-  box-shadow:
-    3px 3px 6px rgba(0, 0, 0, 0.06),
-    -3px -3px 6px rgba(255, 255, 255, 0.6);
-  border-radius: 1rem;
-}
-
-/* Badges - muted colors */
-.soft-modern .badge-blue {
-  background: rgba(168, 197, 232, 0.3);
-  color: #4A5F80;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.04);
-  border-radius: 0.75rem;
-}
-
-.soft-modern .badge-green {
-  background: rgba(184, 212, 196, 0.3);
-  color: #4A6B5A;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.04);
-  border-radius: 0.75rem;
-}
-
-.soft-modern .badge-purple {
-  background: rgba(201, 184, 212, 0.3);
-  color: #6B5A7A;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.04);
-  border-radius: 0.75rem;
-}
-
-.soft-modern .badge-orange {
-  background: rgba(232, 201, 168, 0.3);
-  color: #7A6050;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.04);
-  border-radius: 0.75rem;
-}
-
-/* Primary action button - muted blue */
 .soft-modern .btn-primary {
-  background: linear-gradient(135deg, #A8C5E8 0%, #90B5D8 100%);
+  background: var(--sm-accent-primary);
   color: white;
-  box-shadow:
-    6px 6px 12px rgba(0, 0, 0, 0.08),
-    -2px -2px 8px rgba(255, 255, 255, 0.6);
-  border: none;
-  border-radius: 1rem;
+  box-shadow: var(--sm-shadow-sm);
 }
 
 .soft-modern .btn-primary:hover {
-  box-shadow:
-    4px 4px 8px rgba(0, 0, 0, 0.08),
-    -2px -2px 8px rgba(255, 255, 255, 0.6);
+  background: #2563EB;
+  box-shadow: var(--sm-shadow-md);
+  transform: translateY(-1px);
 }
 
-/* Sidebar/Navigation - warm cream */
+.soft-modern .btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--sm-shadow-sm);
+}
+
+.soft-modern .btn-secondary {
+  background: var(--sm-bg-surface);
+  color: var(--sm-text-primary);
+  border: 1px solid var(--sm-border-default);
+  box-shadow: var(--sm-shadow-sm);
+}
+
+.soft-modern .btn-secondary:hover {
+  border-color: var(--sm-border-strong);
+  box-shadow: var(--sm-shadow-md);
+}
+
+.soft-modern .btn-ghost {
+  background: transparent;
+  color: var(--sm-text-secondary);
+  border: none;
+}
+
+.soft-modern .btn-ghost:hover {
+  background: var(--sm-bg-base);
+  color: var(--sm-text-primary);
+}
+
+/* ============================================
+   INPUTS
+   ============================================ */
+
+.soft-modern .input {
+  background: var(--sm-bg-surface);
+  border: 1px solid var(--sm-border-default);
+  border-radius: var(--sm-radius-sm);
+  color: var(--sm-text-primary);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.soft-modern .input::placeholder {
+  color: var(--sm-text-tertiary);
+}
+
+.soft-modern .input:hover {
+  border-color: var(--sm-border-strong);
+}
+
+.soft-modern .input:focus {
+  outline: none;
+  border-color: var(--sm-accent-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+
 .soft-modern .sidebar {
-  background: #EFEAE4;
-  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.05);
+  background: var(--sm-bg-surface);
+  border-right: 1px solid var(--sm-border-default);
 }
 
 .soft-modern .nav-item {
-  background: transparent;
-  color: #6B6B6B;
-  border-radius: 1rem;
-  transition: all 0.2s ease;
+  color: var(--sm-text-secondary);
+  border-radius: var(--sm-radius-md);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .soft-modern .nav-item:hover {
-  background: rgba(255, 255, 255, 0.4);
-  color: #2D2D2D;
-  box-shadow:
-    3px 3px 6px rgba(0, 0, 0, 0.06),
-    -3px -3px 6px rgba(255, 255, 255, 0.6);
+  color: var(--sm-text-primary);
+  background: var(--sm-bg-base);
 }
 
 .soft-modern .nav-item.active {
-  background: rgba(255, 255, 255, 0.6);
-  color: #2D2D2D;
-  box-shadow:
-    inset 2px 2px 4px rgba(0, 0, 0, 0.06),
-    inset -2px -2px 4px rgba(255, 255, 255, 0.6);
+  color: var(--sm-text-primary);
+  background: var(--sm-bg-base);
 }
 
-/* Text colors */
+.soft-modern .nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--sm-accent-primary);
+  border-radius: 0 var(--sm-radius-sm) var(--sm-radius-sm) 0;
+}
+
+/* ============================================
+   BADGES & STATUS
+   ============================================ */
+
+.soft-modern .badge {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--sm-radius-full);
+  display: inline-flex;
+  align-items: center;
+}
+
+.soft-modern .badge-primary {
+  color: var(--sm-accent-primary);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.soft-modern .badge-success {
+  color: var(--sm-accent-success);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.soft-modern .badge-warning {
+  color: var(--sm-accent-warning);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.soft-modern .badge-error {
+  color: var(--sm-accent-error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.soft-modern .badge-neutral {
+  color: var(--sm-text-secondary);
+  background: var(--sm-bg-base);
+}
+
+/* ============================================
+   ICONS
+   ============================================ */
+
+.soft-modern .icon-container {
+  background: var(--sm-bg-base);
+  border-radius: var(--sm-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.soft-modern .icon-primary {
+  color: var(--sm-accent-primary);
+}
+
+.soft-modern .icon-success {
+  color: var(--sm-accent-success);
+}
+
+.soft-modern .icon-warning {
+  color: var(--sm-accent-warning);
+}
+
+.soft-modern .icon-error {
+  color: var(--sm-accent-error);
+}
+
+/* ============================================
+   DIVIDERS
+   ============================================ */
+
+.soft-modern .divider {
+  background: var(--sm-border-default);
+  height: 1px;
+}
+
+.soft-modern .divider-subtle {
+  background: var(--sm-border-subtle);
+  height: 1px;
+}
+
+/* ============================================
+   TABLES
+   ============================================ */
+
+.soft-modern table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.soft-modern table thead {
+  background: var(--sm-bg-base);
+  border-bottom: 1px solid var(--sm-border-default);
+}
+
+.soft-modern table th {
+  color: var(--sm-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 16px;
+}
+
+.soft-modern table td {
+  color: var(--sm-text-primary);
+  padding: 16px;
+  border-bottom: 1px solid var(--sm-border-subtle);
+}
+
+.soft-modern table tbody tr:hover {
+  background: var(--sm-bg-base);
+}
+
+.soft-modern table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+.soft-modern .text-display {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.soft-modern .text-h1 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.soft-modern .text-h2 {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.soft-modern .text-h3 {
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.soft-modern .text-body-lg {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.soft-modern .text-body {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.soft-modern .text-body-sm {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.soft-modern .text-caption {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--sm-text-tertiary);
+}
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+
 .soft-modern .text-primary {
-  color: #2D2D2D;
+  color: var(--sm-text-primary);
 }
 
 .soft-modern .text-secondary {
-  color: #6B6B6B;
+  color: var(--sm-text-secondary);
 }
 
 .soft-modern .text-tertiary {
-  color: #9CA3AF;
+  color: var(--sm-text-tertiary);
 }
 
-/* Dividers */
-.soft-modern .divider {
-  background: linear-gradient(90deg,
-    rgba(0, 0, 0, 0.06) 0%,
-    rgba(0, 0, 0, 0.02) 50%,
-    rgba(0, 0, 0, 0.06) 100%
-  );
-  height: 1px;
+.soft-modern .bg-base {
+  background: var(--sm-bg-base);
+}
+
+.soft-modern .bg-surface {
+  background: var(--sm-bg-surface);
+}
+
+.soft-modern .border-default {
+  border-color: var(--sm-border-default);
+}
+
+.soft-modern .border-subtle {
+  border-color: var(--sm-border-subtle);
+}
+
+.soft-modern .shadow-sm {
+  box-shadow: var(--sm-shadow-sm);
+}
+
+.soft-modern .shadow-md {
+  box-shadow: var(--sm-shadow-md);
+}
+
+.soft-modern .shadow-lg {
+  box-shadow: var(--sm-shadow-lg);
+}
+
+.soft-modern .shadow-xl {
+  box-shadow: var(--sm-shadow-xl);
 }

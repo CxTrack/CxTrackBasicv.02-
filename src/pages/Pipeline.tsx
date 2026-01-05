@@ -277,8 +277,8 @@ const Pipeline: React.FC = () => {
               <button
                 onClick={() => setViewMode('kanban')}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${viewMode === 'kanban'
-                    ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 <LayoutGrid className="w-4 h-4" />
@@ -287,8 +287,8 @@ const Pipeline: React.FC = () => {
               <button
                 onClick={() => setViewMode('table')}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${viewMode === 'table'
-                    ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 <List className="w-4 h-4" />
@@ -297,8 +297,8 @@ const Pipeline: React.FC = () => {
               <button
                 onClick={() => setViewMode('split')}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${viewMode === 'split'
-                    ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 <Columns className="w-4 h-4" />
@@ -308,12 +308,7 @@ const Pipeline: React.FC = () => {
 
             <button
               onClick={() => navigate('/quotes/builder')}
-              className={theme === 'soft-modern' ? "px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2" : "px-4 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"}
-              style={theme === 'soft-modern' ? {
-                background: 'linear-gradient(135deg, #A8C5E8, #90B5D8)',
-                color: 'white',
-                boxShadow: '4px 4px 8px rgba(0,0,0,0.08), -2px -2px 6px rgba(255,255,255,0.4)'
-              } : undefined}
+              className={theme === 'soft-modern' ? "btn-primary px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2" : "px-4 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"}
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">New Quote</span>
@@ -325,15 +320,12 @@ const Pipeline: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card className="p-6">
             <div className="flex items-center gap-3">
-              <div className={theme === 'soft-modern' ? "p-3 rounded-xl" : "p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600"} style={theme === 'soft-modern' ? {
-                background: 'linear-gradient(135deg, #A8C5E8, #90B5D8)',
-                boxShadow: '3px 3px 6px rgba(0,0,0,0.08)'
-              } : undefined}>
-                <FileText className="w-5 h-5 text-white" />
+              <div className={theme === 'soft-modern' ? "p-3 rounded-lg icon-container" : "p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600"}>
+                <FileText className={theme === 'soft-modern' ? "w-5 h-5 icon-primary" : "w-5 h-5 text-white"} />
               </div>
               <div>
-                <p className={`text-sm ${theme === 'soft-modern' ? '' : 'text-gray-600 dark:text-gray-400'}`} style={theme === 'soft-modern' ? { color: '#6B6B6B' } : undefined}>Total Items</p>
-                <p className={`text-2xl font-bold ${theme === 'soft-modern' ? '' : 'text-gray-900 dark:text-white'}`} style={theme === 'soft-modern' ? { color: '#2D2D2D' } : undefined}>
+                <p className={theme === 'soft-modern' ? "text-body-sm text-secondary" : "text-sm text-gray-600 dark:text-gray-400"}>Total Items</p>
+                <p className={theme === 'soft-modern' ? "text-2xl font-bold text-primary" : "text-2xl font-bold text-gray-900 dark:text-white"}>
                   {filteredItems.length}
                 </p>
               </div>
@@ -342,15 +334,12 @@ const Pipeline: React.FC = () => {
 
           <Card className="p-6">
             <div className="flex items-center gap-3">
-              <div className={theme === 'soft-modern' ? "p-3 rounded-xl" : "p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600"} style={theme === 'soft-modern' ? {
-                background: 'linear-gradient(135deg, #B8D4C4, #A0C4B0)',
-                boxShadow: '3px 3px 6px rgba(0,0,0,0.08)'
-              } : undefined}>
-                <DollarSign className="w-5 h-5 text-white" />
+              <div className={theme === 'soft-modern' ? "p-3 rounded-lg icon-container" : "p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600"}>
+                <DollarSign className={theme === 'soft-modern' ? "w-5 h-5 icon-success" : "w-5 h-5 text-white"} />
               </div>
               <div>
-                <p className={`text-sm ${theme === 'soft-modern' ? '' : 'text-gray-600 dark:text-gray-400'}`} style={theme === 'soft-modern' ? { color: '#6B6B6B' } : undefined}>Total Value</p>
-                <p className={`text-2xl font-bold ${theme === 'soft-modern' ? '' : 'text-gray-900 dark:text-white'}`} style={theme === 'soft-modern' ? { color: '#2D2D2D' } : undefined}>
+                <p className={theme === 'soft-modern' ? "text-body-sm text-secondary" : "text-sm text-gray-600 dark:text-gray-400"}>Total Value</p>
+                <p className={theme === 'soft-modern' ? "text-2xl font-bold text-primary" : "text-2xl font-bold text-gray-900 dark:text-white"}>
                   ${totalValue.toLocaleString()}
                 </p>
               </div>
@@ -359,15 +348,12 @@ const Pipeline: React.FC = () => {
 
           <Card className="p-6">
             <div className="flex items-center gap-3">
-              <div className={theme === 'soft-modern' ? "p-3 rounded-xl" : "p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600"} style={theme === 'soft-modern' ? {
-                background: 'linear-gradient(135deg, #C9B8D4, #B5A0C4)',
-                boxShadow: '3px 3px 6px rgba(0,0,0,0.08)'
-              } : undefined}>
-                <TrendingUp className="w-5 h-5 text-white" />
+              <div className={theme === 'soft-modern' ? "p-3 rounded-lg icon-container" : "p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600"}>
+                <TrendingUp className={theme === 'soft-modern' ? "w-5 h-5 icon-primary" : "w-5 h-5 text-white"} />
               </div>
               <div>
-                <p className={`text-sm ${theme === 'soft-modern' ? '' : 'text-gray-600 dark:text-gray-400'}`} style={theme === 'soft-modern' ? { color: '#6B6B6B' } : undefined}>Weighted Value</p>
-                <p className={`text-2xl font-bold ${theme === 'soft-modern' ? '' : 'text-gray-900 dark:text-white'}`} style={theme === 'soft-modern' ? { color: '#2D2D2D' } : undefined}>
+                <p className={theme === 'soft-modern' ? "text-body-sm text-secondary" : "text-sm text-gray-600 dark:text-gray-400"}>Weighted Value</p>
+                <p className={theme === 'soft-modern' ? "text-2xl font-bold text-primary" : "text-2xl font-bold text-gray-900 dark:text-white"}>
                   ${Math.round(weightedValue).toLocaleString()}
                 </p>
               </div>
@@ -408,12 +394,12 @@ const Pipeline: React.FC = () => {
               <button
                 onClick={() => setSelectedStage('all')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${selectedStage === 'all'
-                    ? theme === 'soft-modern'
-                      ? ''
-                      : 'bg-blue-600 text-white'
-                    : theme === 'soft-modern'
-                      ? ''
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                  ? theme === 'soft-modern'
+                    ? ''
+                    : 'bg-blue-600 text-white'
+                  : theme === 'soft-modern'
+                    ? ''
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                   }`}
                 style={theme === 'soft-modern' ? (
                   selectedStage === 'all' ? {
@@ -434,12 +420,12 @@ const Pipeline: React.FC = () => {
                   key={stage.id}
                   onClick={() => setSelectedStage(stage.id)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${selectedStage === stage.id
-                      ? theme === 'soft-modern'
-                        ? ''
-                        : 'bg-blue-600 text-white'
-                      : theme === 'soft-modern'
-                        ? ''
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    ? theme === 'soft-modern'
+                      ? ''
+                      : 'bg-blue-600 text-white'
+                    : theme === 'soft-modern'
+                      ? ''
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                     }`}
                   style={theme === 'soft-modern' ? (
                     selectedStage === stage.id ? {
@@ -630,8 +616,8 @@ const Pipeline: React.FC = () => {
                     key={`${item.type}-${item.id}`}
                     onClick={() => setSelectedItem(item)}
                     className={`px-6 py-4 border-b border-slate-100 dark:border-slate-700 cursor-pointer transition-all ${selectedItem?.id === item.id
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-600 dark:border-l-blue-500'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                      ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-600 dark:border-l-blue-500'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
                       }`}
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -837,10 +823,10 @@ const Pipeline: React.FC = () => {
                           key={`${item.type}-${item.id}`}
                           onClick={() => navigate(`/${item.type === 'quote' ? 'quotes' : 'invoices'}/${item.id}`)}
                           className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${theme === 'soft-modern'
-                              ? ''
-                              : theme === 'dark'
-                                ? 'bg-gray-700 border-gray-600 hover:border-blue-500'
-                                : 'bg-white border-gray-200 hover:border-blue-500'
+                            ? ''
+                            : theme === 'dark'
+                              ? 'bg-gray-700 border-gray-600 hover:border-blue-500'
+                              : 'bg-white border-gray-200 hover:border-blue-500'
                             }`}
                           style={theme === 'soft-modern' ? {
                             background: 'rgba(255, 255, 255, 0.6)',
@@ -850,8 +836,8 @@ const Pipeline: React.FC = () => {
                         >
                           <div className="flex items-start justify-between mb-2">
                             <span className={`px-2 py-0.5 rounded text-xs font-semibold ${item.type === 'quote'
-                                ? theme === 'soft-modern' ? '' : 'bg-blue-100 text-blue-700'
-                                : theme === 'soft-modern' ? '' : 'bg-purple-100 text-purple-700'
+                              ? theme === 'soft-modern' ? '' : 'bg-blue-100 text-blue-700'
+                              : theme === 'soft-modern' ? '' : 'bg-purple-100 text-purple-700'
                               }`} style={theme === 'soft-modern' ? {
                                 background: item.type === 'quote' ? 'rgba(168, 197, 232, 0.3)' : 'rgba(201, 184, 212, 0.3)',
                                 color: item.type === 'quote' ? '#4A5F80' : '#7A6050'

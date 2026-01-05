@@ -10,6 +10,7 @@ import CustomerModal from '@/components/customers/CustomerModal';
 import { getCustomerFullName } from '@/utils/customer.utils';
 import { formatPhoneDisplay } from '@/utils/phone.utils';
 import { Card, Button, PageContainer } from '@/components/theme/ThemeComponents';
+import toast from 'react-hot-toast';
 
 export const Customers: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,7 +45,12 @@ export const Customers: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this customer?')) {
-      await deleteCustomer(id);
+      try {
+        await deleteCustomer(id);
+        toast.success('Customer deleted successfully');
+      } catch (error) {
+        toast.error('Failed to delete customer');
+      }
     }
   };
 
@@ -123,11 +129,10 @@ export const Customers: React.FC = () => {
                     <button
                       key={type}
                       onClick={() => setFilterType(type)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        filterType === type
-                          ? 'bg-primary-600 text-white'
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                      }`}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === type
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                        }`}
                     >
                       {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
                     </button>
@@ -144,11 +149,10 @@ export const Customers: React.FC = () => {
                     <button
                       key={status}
                       onClick={() => setFilterStatus(status)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        filterStatus === status
-                          ? 'bg-primary-600 text-white'
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                      }`}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterStatus === status
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                        }`}
                     >
                       {status}
                     </button>
@@ -268,11 +272,10 @@ export const Customers: React.FC = () => {
                           </Link>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                            customer.customer_type === 'business'
-                              ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400'
-                              : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
-                          }`}>
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${customer.customer_type === 'business'
+                            ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400'
+                            : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                            }`}>
                             {customer.customer_type === 'business' ? (
                               <>
                                 <Building2 size={12} className="mr-1" />
@@ -303,11 +306,10 @@ export const Customers: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                            customer.status === 'Active'
-                              ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
-                          }`}>
+                          <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${customer.status === 'Active'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
+                            }`}>
                             {customer.status}
                           </span>
                         </td>
@@ -373,11 +375,10 @@ export const Customers: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                      customer.customer_type === 'business'
-                        ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400'
-                        : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
-                    }`}>
+                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${customer.customer_type === 'business'
+                      ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400'
+                      : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                      }`}>
                       {customer.customer_type === 'business' ? 'Business' : 'Personal'}
                     </span>
                   </div>
@@ -398,11 +399,10 @@ export const Customers: React.FC = () => {
                   </div>
 
                   <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                      customer.status === 'Active'
-                        ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
-                    }`}>
+                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${customer.status === 'Active'
+                      ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
+                      }`}>
                       {customer.status}
                     </span>
                     <span className="text-sm font-semibold text-gray-900 dark:text-white">

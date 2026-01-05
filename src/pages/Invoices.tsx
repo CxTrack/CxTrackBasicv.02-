@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search, Plus, Filter, FileText, DollarSign,
@@ -21,7 +21,7 @@ export default function Invoices() {
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
 
-  const { invoices, loading, fetchInvoices } = useInvoiceStore();
+  const { invoices, loading, fetchInvoices, deleteInvoice } = useInvoiceStore();
   const { currentOrganization, demoMode, getOrganizationId } = useOrganizationStore();
   const { theme } = useThemeStore();
 
@@ -37,7 +37,7 @@ export default function Invoices() {
   }, [currentOrganization?.id, demoMode]);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (_e: MouseEvent) => {
       if (activeDropdown) {
         setActiveDropdown(null);
       }
@@ -195,10 +195,15 @@ export default function Invoices() {
           <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
 
           <button
-            onClick={() => {
+            onClick={async () => {
               if (confirm('Are you sure you want to delete this invoice?')) {
-                toast.success('Invoice deleted!');
-                onClose();
+                try {
+                  await deleteInvoice(invoice.id);
+                  toast.success('Invoice deleted successfully');
+                  onClose();
+                } catch (error) {
+                  toast.error('Failed to delete invoice');
+                }
               }
             }}
             className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 flex items-center gap-2"
@@ -225,108 +230,107 @@ export default function Invoices() {
   return (
     <PageContainer className="gap-6">
       <Card className="border-0">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Invoices
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Manage billing and track payments
-              </p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Invoices
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Manage billing and track payments
+            </p>
+          </div>
+          <Link
+            to="/invoices/builder"
+            className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium shadow-sm"
+          >
+            <Plus size={20} className="mr-2" />
+            New Invoice
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-5 gap-4 mb-6">
+          <div className={theme === 'soft-modern' ? "card p-4" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Total Value</span>
+              <DollarSign size={18} className="text-blue-600 dark:text-blue-400" />
             </div>
-            <Link
-              to="/invoices/builder"
-              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium shadow-sm"
-            >
-              <Plus size={20} className="mr-2" />
-              New Invoice
-            </Link>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              ${stats.totalValue.toLocaleString()}
+            </p>
           </div>
 
-          <div className="grid grid-cols-5 gap-4 mb-6">
-            <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Total Value</span>
-                <DollarSign size={18} className="text-blue-600 dark:text-blue-400" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${stats.totalValue.toLocaleString()}
-              </p>
+          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Paid</span>
+              <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
             </div>
-
-            <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Paid</span>
-                <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${stats.totalPaid.toLocaleString()}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{stats.paidCount} invoices</p>
-            </div>
-
-            <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Outstanding</span>
-                <Clock size={18} className="text-orange-600 dark:text-orange-400" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${stats.totalOutstanding.toLocaleString()}
-              </p>
-            </div>
-
-            <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Overdue</span>
-                <AlertCircle size={18} className="text-red-600 dark:text-red-400" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.overdueCount}</p>
-              <p className="text-xs text-red-600 dark:text-red-400 mt-1">Requires attention</p>
-            </div>
-
-            <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Collection Rate</span>
-                <CheckCircle size={18} className="text-purple-600 dark:text-purple-400" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.totalValue > 0 ? ((stats.totalPaid / stats.totalValue) * 100).toFixed(0) : 0}%
-              </p>
-            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              ${stats.totalPaid.toLocaleString()}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{stats.paidCount} invoices</p>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <div className="flex-1 relative">
-              <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search invoices by number, customer..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Outstanding</span>
+              <Clock size={18} className="text-orange-600 dark:text-orange-400" />
             </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              ${stats.totalOutstanding.toLocaleString()}
+            </p>
+          </div>
 
-            <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-1">
-              {(['all', 'draft', 'sent', 'paid', 'overdue'] as const).map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setFilterStatus(status)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    filterStatus === status
-                      ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Overdue</span>
+              <AlertCircle size={18} className="text-red-600 dark:text-red-400" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.overdueCount}</p>
+            <p className="text-xs text-red-600 dark:text-red-400 mt-1">Requires attention</p>
+          </div>
+
+          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Collection Rate</span>
+              <CheckCircle size={18} className="text-purple-600 dark:text-purple-400" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {stats.totalValue > 0 ? ((stats.totalPaid / stats.totalValue) * 100).toFixed(0) : 0}%
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-3">
+          <div className="flex-1 relative">
+            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search invoices by number, customer..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-1">
+            {(['all', 'draft', 'sent', 'paid', 'overdue'] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${filterStatus === status
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
-                >
-                  {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            <button className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <Filter size={18} className="text-gray-600 dark:text-gray-400" />
-            </button>
+              >
+                {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
+              </button>
+            ))}
           </div>
+
+          <button className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <Filter size={18} className="text-gray-600 dark:text-gray-400" />
+          </button>
+        </div>
       </Card>
 
       <div className="flex-1 overflow-y-auto">
@@ -356,7 +360,7 @@ export default function Invoices() {
         ) : (
           <Card className="overflow-hidden p-0 min-h-[600px]">
             <table className="w-full">
-              <thead className={theme === 'soft-modern' ? "bg-gradient-to-br from-slate-50 to-slate-100 border-b-2 border-slate-200" : "bg-slate-50 dark:bg-gray-700 border-b-2 border-slate-100 dark:border-gray-600"}>
+              <thead className={theme === 'soft-modern' ? "bg-base border-b border-default" : "bg-slate-50 dark:bg-gray-700 border-b-2 border-slate-100 dark:border-gray-600"}>
                 <tr>
                   <th className="w-12 px-4 py-4 text-left">
                     <input
@@ -415,19 +419,18 @@ export default function Invoices() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
-                          invoice.status === 'paid'
-                            ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20'
-                            : invoice.status === 'overdue'
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${invoice.status === 'paid'
+                          ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20'
+                          : invoice.status === 'overdue'
                             ? 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20'
                             : 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20'
-                        }`}>
+                          }`}>
                           <FileText size={20} className={
                             invoice.status === 'paid'
                               ? 'text-green-600 dark:text-green-400'
                               : invoice.status === 'overdue'
-                              ? 'text-red-600 dark:text-red-400'
-                              : 'text-blue-600 dark:text-blue-400'
+                                ? 'text-red-600 dark:text-red-400'
+                                : 'text-blue-600 dark:text-blue-400'
                           } />
                         </div>
                         <div>
@@ -448,11 +451,10 @@ export default function Invoices() {
                       <p className="text-sm text-gray-900 dark:text-white">
                         {format(new Date(invoice.invoice_date), 'MMM dd, yyyy')}
                       </p>
-                      <p className={`text-xs ${
-                        new Date(invoice.due_date) < new Date() && invoice.status !== 'paid'
-                          ? 'text-red-600 dark:text-red-400 font-medium'
-                          : 'text-gray-500 dark:text-gray-400'
-                      }`}>
+                      <p className={`text-xs ${new Date(invoice.due_date) < new Date() && invoice.status !== 'paid'
+                        ? 'text-red-600 dark:text-red-400 font-medium'
+                        : 'text-gray-500 dark:text-gray-400'
+                        }`}>
                         Due: {format(new Date(invoice.due_date), 'MMM dd')}
                       </p>
                     </td>

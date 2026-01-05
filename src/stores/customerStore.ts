@@ -21,6 +21,8 @@ interface CustomerStore {
   notes: CustomerNote[];
   fetchNotes: (customerId: string) => Promise<void>;
   addNote: (note: Partial<CustomerNote>) => Promise<void>;
+  updateNote: (id: string, updates: Partial<CustomerNote>) => Promise<void>;
+  deleteNote: (id: string) => Promise<void>;
 
   contacts: CustomerContact[];
   fetchContacts: (customerId: string) => Promise<void>;
@@ -42,15 +44,12 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
   fetchCustomers: async () => {
     set({ loading: true, error: null });
 
-    // DEMO MODE
     if (DEMO_MODE) {
       const demoCustomers = loadDemoData<Customer>(DEMO_STORAGE_KEYS.customers);
       set({ customers: demoCustomers, loading: false });
-      console.log('✅ Demo customers loaded:', demoCustomers.length);
       return;
     }
 
-    // PRODUCTION MODE
     const organizationId = useOrganizationStore.getState().currentOrganization?.id;
     if (!organizationId) return;
 
@@ -71,7 +70,6 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
   fetchCustomerById: async (id: string) => {
     set({ loading: true, error: null });
 
-    // DEMO MODE
     if (DEMO_MODE) {
       const customers = loadDemoData<Customer>(DEMO_STORAGE_KEYS.customers);
       const customer = customers.find(c => c.id === id);
@@ -79,7 +77,6 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
       return;
     }
 
-    // PRODUCTION MODE
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -100,46 +97,16 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
   },
 
   createCustomer: async (customer: Partial<Customer>) => {
-    console.log('👤 Creating customer...', customer);
     set({ loading: true, error: null });
 
-    // DEMO MODE
     if (DEMO_MODE) {
       try {
         const existingCustomers = get().customers;
-
         const fullName = [
           customer.first_name,
           customer.middle_name,
           customer.last_name
         ].filter(Boolean).join(' ').trim() || 'New Customer';
-
-        if (customer.email && customer.email.trim()) {
-          const duplicateByEmail = existingCustomers.find(c =>
-            c.email && c.email.toLowerCase().trim() === customer.email!.toLowerCase().trim()
-          );
-
-          if (duplicateByEmail) {
-            const error = `A customer with email "${customer.email}" already exists`;
-            console.error('❌ Duplicate email:', error);
-            set({ error, loading: false });
-            throw new Error(error);
-          }
-        }
-
-        const duplicateByNameAndEmail = existingCustomers.find(c =>
-          c.name.toLowerCase().trim() === fullName.toLowerCase().trim() &&
-          customer.email &&
-          c.email &&
-          c.email.toLowerCase().trim() === customer.email.toLowerCase().trim()
-        );
-
-        if (duplicateByNameAndEmail) {
-          const error = 'A customer with this name and email already exists';
-          console.error('❌ Duplicate customer:', error);
-          set({ error, loading: false });
-          throw new Error(error);
-        }
 
         const newCustomer: Customer = {
           id: generateDemoId('customer'),
@@ -167,10 +134,7 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
         const updatedCustomers = [newCustomer, ...get().customers];
         saveDemoData(DEMO_STORAGE_KEYS.customers, updatedCustomers);
-
         set({ customers: updatedCustomers, loading: false });
-        console.log('✅ Demo customer created:', newCustomer);
-
         return newCustomer;
       } catch (error: any) {
         set({ error: error.message, loading: false });
@@ -178,46 +142,13 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
       }
     }
 
-    // PRODUCTION MODE
     try {
-      const existingCustomers = get().customers;
-      const userId = MOCK_ADMIN_USER.id;
       const organizationId = MOCK_ADMIN_USER.organization_id;
-
-      const customerCategory = customer.customer_type === 'business' ? 'Business' : 'Personal';
-
       const fullName = [
         customer.first_name,
         customer.middle_name,
         customer.last_name
       ].filter(Boolean).join(' ').trim() || 'New Customer';
-
-      if (customer.email && customer.email.trim()) {
-        const duplicateByEmail = existingCustomers.find(c =>
-          c.email && c.email.toLowerCase().trim() === customer.email!.toLowerCase().trim()
-        );
-
-        if (duplicateByEmail) {
-          const error = `A customer with email "${customer.email}" already exists`;
-          console.error('❌ Duplicate email:', error);
-          set({ error, loading: false });
-          throw new Error(error);
-        }
-      }
-
-      const duplicateByNameAndEmail = existingCustomers.find(c =>
-        c.name.toLowerCase().trim() === fullName.toLowerCase().trim() &&
-        customer.email &&
-        c.email &&
-        c.email.toLowerCase().trim() === customer.email.toLowerCase().trim()
-      );
-
-      if (duplicateByNameAndEmail) {
-        const error = 'A customer with this name and email already exists';
-        console.error('❌ Duplicate customer:', error);
-        set({ error, loading: false });
-        throw new Error(error);
-      }
 
       const insertData: any = {
         ...customer,
@@ -225,13 +156,7 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
         organization_id: organizationId,
         country: customer.country || 'CA',
         status: customer.status || 'Active',
-        customer_category: customerCategory,
-        total_spent: customer.total_spent || 0,
       };
-
-      if (userId && userId !== '00000000-0000-0000-0000-000000000001') {
-        insertData.created_by = userId;
-      }
 
       const { data, error } = await supabase
         .from('customers')
@@ -248,8 +173,7 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
       return data;
     } catch (error: any) {
-      const errorMessage = error.message || 'Failed to create customer';
-      set({ error: errorMessage, loading: false });
+      set({ error: error.message, loading: false });
       throw error;
     }
   },
@@ -257,15 +181,11 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
   updateCustomer: async (id: string, updates: Partial<Customer>) => {
     set({ loading: true, error: null });
 
-    // DEMO MODE
     if (DEMO_MODE) {
       try {
         const customers = loadDemoData<Customer>(DEMO_STORAGE_KEYS.customers);
         const index = customers.findIndex(c => c.id === id);
-
-        if (index === -1) {
-          throw new Error('Customer not found');
-        }
+        if (index === -1) throw new Error('Customer not found');
 
         const updatedCustomer = {
           ...customers[index],
@@ -273,12 +193,8 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
           updated_at: new Date().toISOString(),
         };
 
-        const updatedCustomers = [
-          ...customers.slice(0, index),
-          updatedCustomer,
-          ...customers.slice(index + 1)
-        ];
-
+        const updatedCustomers = [...customers];
+        updatedCustomers[index] = updatedCustomer;
         saveDemoData(DEMO_STORAGE_KEYS.customers, updatedCustomers);
 
         set((state) => ({
@@ -286,16 +202,12 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
           currentCustomer: state.currentCustomer?.id === id ? updatedCustomer : state.currentCustomer,
           loading: false
         }));
-
-        console.log('✅ Demo customer updated:', updatedCustomer);
       } catch (error: any) {
         set({ error: error.message, loading: false });
-        throw error;
       }
       return;
     }
 
-    // PRODUCTION MODE
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -319,21 +231,13 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
   deleteCustomer: async (id: string) => {
     set({ loading: true, error: null });
 
-    // DEMO MODE
     if (DEMO_MODE) {
-      try {
-        const updatedCustomers = get().customers.filter(c => c.id !== id);
-        saveDemoData(DEMO_STORAGE_KEYS.customers, updatedCustomers);
-        set({ customers: updatedCustomers, loading: false });
-        console.log('✅ Demo customer deleted:', id);
-      } catch (error: any) {
-        set({ error: error.message, loading: false });
-        throw error;
-      }
+      const updatedCustomers = get().customers.filter(c => c.id !== id);
+      saveDemoData(DEMO_STORAGE_KEYS.customers, updatedCustomers);
+      set({ customers: updatedCustomers, loading: false });
       return;
     }
 
-    // PRODUCTION MODE
     try {
       const { error } = await supabase
         .from('customers')
@@ -353,6 +257,13 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
   fetchNotes: async (customerId: string) => {
     set({ loading: true, error: null });
+
+    if (DEMO_MODE) {
+      const allNotes = loadDemoData<CustomerNote>(DEMO_STORAGE_KEYS.customer_notes);
+      set({ notes: allNotes.filter(n => n.customer_id === customerId), loading: false });
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('customer_notes')
@@ -368,29 +279,88 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
   },
 
   addNote: async (note: Partial<CustomerNote>) => {
+    set({ loading: true, error: null });
+
+    if (DEMO_MODE) {
+      const newNote: CustomerNote = {
+        id: generateDemoId('note'),
+        customer_id: note.customer_id!,
+        content: note.content || '',
+        organization_id: 'demo-org',
+        user_id: 'demo-user',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as CustomerNote;
+
+      const allNotes = loadDemoData<CustomerNote>(DEMO_STORAGE_KEYS.customer_notes);
+      saveDemoData(DEMO_STORAGE_KEYS.customer_notes, [newNote, ...allNotes]);
+      set((state) => ({ notes: [newNote, ...state.notes], loading: false }));
+      return;
+    }
+
     const organizationId = useOrganizationStore.getState().currentOrganization?.id;
     if (!organizationId) return;
 
-    set({ loading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
-
       const { data, error } = await supabase
         .from('customer_notes')
-        .insert({
-          ...note,
-          organization_id: organizationId,
-          user_id: user?.id,
-        })
+        .insert({ ...note, organization_id: organizationId, user_id: user?.id })
         .select()
         .single();
 
       if (error) throw error;
+      set((state) => ({ notes: [data, ...state.notes], loading: false }));
+    } catch (error: any) {
+      set({ error: error.message, loading: false });
+    }
+  },
 
-      set((state) => ({
-        notes: [data, ...state.notes],
-        loading: false,
-      }));
+  updateNote: async (id: string, updates: Partial<CustomerNote>) => {
+    set({ loading: true, error: null });
+
+    if (DEMO_MODE) {
+      const allNotes = loadDemoData<CustomerNote>(DEMO_STORAGE_KEYS.customer_notes);
+      const index = allNotes.findIndex(n => n.id === id);
+      if (index !== -1) {
+        const updatedNote = { ...allNotes[index], ...updates, updated_at: new Date().toISOString() };
+        allNotes[index] = updatedNote;
+        saveDemoData(DEMO_STORAGE_KEYS.customer_notes, allNotes);
+        set((state) => ({ notes: state.notes.map(n => n.id === id ? updatedNote : n), loading: false }));
+      }
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('customer_notes')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      set((state) => ({ notes: state.notes.map(n => n.id === id ? data : n), loading: false }));
+    } catch (error: any) {
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  deleteNote: async (id: string) => {
+    set({ loading: true, error: null });
+
+    if (DEMO_MODE) {
+      const allNotes = loadDemoData<CustomerNote>(DEMO_STORAGE_KEYS.customer_notes);
+      const filtered = allNotes.filter(n => n.id !== id);
+      saveDemoData(DEMO_STORAGE_KEYS.customer_notes, filtered);
+      set((state) => ({ notes: state.notes.filter(n => n.id !== id), loading: false }));
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('customer_notes').delete().eq('id', id);
+      if (error) throw error;
+      set((state) => ({ notes: state.notes.filter(n => n.id !== id), loading: false }));
     } catch (error: any) {
       set({ error: error.message, loading: false });
     }
@@ -415,18 +385,9 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
   addContact: async (contact: Partial<CustomerContact>) => {
     set({ loading: true, error: null });
     try {
-      const { data, error } = await supabase
-        .from('customer_contacts')
-        .insert(contact)
-        .select()
-        .single();
-
+      const { data, error } = await supabase.from('customer_contacts').insert(contact).select().single();
       if (error) throw error;
-
-      set((state) => ({
-        contacts: [data, ...state.contacts],
-        loading: false,
-      }));
+      set((state) => ({ contacts: [data, ...state.contacts], loading: false }));
     } catch (error: any) {
       set({ error: error.message, loading: false });
     }

@@ -14,14 +14,14 @@
     padding-top: env(safe-area-inset-top);
   }
 
-  /* Hide scrollbar but keep functionality */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  /* Hide scrollbar globally but keep functionality */
+  * {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
   }
 
   /* Touch-friendly tap targets */

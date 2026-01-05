@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Plus,
   Search,
@@ -10,10 +10,9 @@ import {
   Edit2,
   Trash2,
   AlertCircle,
-  Calendar,
-  User,
   Archive,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import TaskModal from '@/components/tasks/TaskModal';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import KanbanBoard from '@/components/tasks/KanbanBoard';
@@ -200,23 +199,7 @@ export default function Tasks() {
     });
   };
 
-  const toggleTaskSelection = (taskId: string) => {
-    const newSelected = new Set(selectedTasks);
-    if (newSelected.has(taskId)) {
-      newSelected.delete(taskId);
-    } else {
-      newSelected.add(taskId);
-    }
-    setSelectedTasks(newSelected);
-  };
 
-  const toggleSelectAll = () => {
-    if (selectedTasks.size === filteredTasks.length && filteredTasks.length > 0) {
-      setSelectedTasks(new Set());
-    } else {
-      setSelectedTasks(new Set(filteredTasks.map((t) => t.id)));
-    }
-  };
 
   const handleSelectAll = () => {
     if (selectAll) {
@@ -260,10 +243,13 @@ export default function Tasks() {
     setSelectedTasks(new Set());
     setSelectAll(false);
     setShowDeleteModal(false);
+    toast.success('Tasks deleted successfully');
   };
 
   const deleteTask = (taskId: string) => {
+    if (!confirm('Are you sure you want to delete this task?')) return;
     setTasks((prev) => prev.filter((task) => task.id !== taskId));
+    toast.success('Task deleted successfully');
   };
 
   const updateTaskStatus = (taskId: string, newStatus: string) => {
@@ -290,7 +276,7 @@ export default function Tasks() {
       <div className={`min-h-screen ${theme === 'soft-modern' ? 'bg-soft-cream' : 'bg-gray-50 dark:bg-gray-950'}`}>
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="max-w-[1920px] mx-auto">
-            <div className={theme === 'soft-modern' ? 'rounded-3xl p-8 border border-white/50 mb-6' : 'bg-white dark:bg-gray-800 rounded-2xl p-6 lg:p-8 border-2 border-gray-200 dark:border-gray-700 mb-6'} style={theme === 'soft-modern' ? { background: '#F8F6F2', boxShadow: '8px 8px 16px rgba(0,0,0,0.08), -8px -8px 16px rgba(255,255,255,0.9)' } : undefined}>
+            <div className={theme === 'soft-modern' ? 'card p-8 mb-6' : 'bg-white dark:bg-gray-800 rounded-2xl p-6 lg:p-8 border-2 border-gray-200 dark:border-gray-700 mb-6'}>
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">Tasks</h1>
@@ -302,7 +288,7 @@ export default function Tasks() {
                     setSelectedTask(null);
                     setShowTaskModal(true);
                   }}
-                  className={theme === 'soft-modern' ? 'flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-[6px_6px_12px_rgba(0,0,0,0.15)] hover:shadow-[3px_3px_8px_rgba(0,0,0,0.2)] active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)] transition-all duration-200' : 'flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors'}
+                  className={theme === 'soft-modern' ? 'btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all' : 'flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors'}
                 >
                   <Plus size={18} />
                   New Task
@@ -319,20 +305,20 @@ export default function Tasks() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={
                       theme === 'soft-modern'
-                        ? 'w-full pl-10 pr-4 py-2.5 bg-white rounded-xl shadow-[4px_4px_8px_rgba(0,0,0,0.06),-2px_-2px_6px_rgba(255,255,255,0.9)] border-2 border-transparent focus:border-blue-500 transition-all text-slate-700'
+                        ? 'input w-full pl-10 pr-4 py-2.5 rounded-xl'
                         : 'w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-gray-900 dark:text-white'
                     }
                   />
                 </div>
 
-                <div className={theme === 'soft-modern' ? 'flex items-center gap-1 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-1 shadow-inner' : 'flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1'}>
+                <div className={theme === 'soft-modern' ? 'flex items-center gap-1 bg-base rounded-lg p-1' : 'flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1'}>
                   <button
                     onClick={() => setViewMode('table')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === 'table'
-                        ? theme === 'soft-modern'
-                          ? 'bg-white shadow-[2px_2px_4px_rgba(0,0,0,0.1)] text-slate-900'
-                          : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                        : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
+                      ? theme === 'soft-modern'
+                        ? 'bg-surface shadow-sm text-primary'
+                        : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                      : theme === 'soft-modern' ? 'text-secondary hover:text-primary' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
                       }`}
                   >
                     <ListTodo size={16} />
@@ -341,10 +327,10 @@ export default function Tasks() {
                   <button
                     onClick={() => setViewMode('kanban')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === 'kanban'
-                        ? theme === 'soft-modern'
-                          ? 'bg-white shadow-[2px_2px_4px_rgba(0,0,0,0.1)] text-slate-900'
-                          : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                        : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
+                      ? theme === 'soft-modern'
+                        ? 'bg-surface shadow-sm text-primary'
+                        : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                      : theme === 'soft-modern' ? 'text-secondary hover:text-primary' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
                       }`}
                   >
                     <LayoutGrid size={16} />
@@ -354,7 +340,7 @@ export default function Tasks() {
 
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className={theme === 'soft-modern' ? 'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-gradient-to-br from-slate-50 to-slate-100 text-slate-700 shadow-[6px_6px_12px_rgba(0,0,0,0.08),-6px_-6px_12px_rgba(255,255,255,0.9)] hover:shadow-[3px_3px_8px_rgba(0,0,0,0.12)] active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1)] transition-all duration-200' : 'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors'}
+                  className={theme === 'soft-modern' ? 'btn-secondary flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all' : 'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors'}
                 >
                   <Filter size={18} />
                   Filters
@@ -368,7 +354,7 @@ export default function Tasks() {
             </div>
 
             {showFilters && (
-              <div className={theme === 'soft-modern' ? 'mb-6 space-y-4 rounded-3xl p-8 border border-white/50' : 'mb-6 space-y-4 bg-white dark:bg-gray-800 rounded-2xl p-6 border-2 border-gray-200 dark:border-gray-700'} style={theme === 'soft-modern' ? { background: '#F8F6F2', boxShadow: '8px 8px 16px rgba(0,0,0,0.08), -8px -8px 16px rgba(255,255,255,0.9)' } : undefined}>
+              <div className={theme === 'soft-modern' ? 'card mb-6 space-y-4 p-8' : 'mb-6 space-y-4 bg-white dark:bg-gray-800 rounded-2xl p-6 border-2 border-gray-200 dark:border-gray-700'}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
@@ -380,7 +366,7 @@ export default function Tasks() {
                       onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
                       className={
                         theme === 'soft-modern'
-                          ? 'w-full px-4 py-2.5 bg-white rounded-xl shadow-[4px_4px_8px_rgba(0,0,0,0.06),-2px_-2px_6px_rgba(255,255,255,0.9)] border-2 border-transparent focus:border-blue-500 transition-all text-slate-700'
+                          ? 'input w-full px-4 py-2.5 rounded-xl'
                           : 'w-full px-4 py-2.5 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-gray-900 dark:text-white'
                       }
                     />
@@ -393,7 +379,7 @@ export default function Tasks() {
                       onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
                       className={
                         theme === 'soft-modern'
-                          ? 'w-full px-4 py-2.5 bg-white rounded-xl shadow-[4px_4px_8px_rgba(0,0,0,0.06),-2px_-2px_6px_rgba(255,255,255,0.9)] border-2 border-transparent focus:border-blue-500 transition-all text-slate-700'
+                          ? 'input w-full px-4 py-2.5 rounded-xl'
                           : 'w-full px-4 py-2.5 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-gray-900 dark:text-white'
                       }
                     />
@@ -440,7 +426,7 @@ export default function Tasks() {
                 {hasActiveFilters && (
                   <button
                     onClick={clearAllFilters}
-                    className={theme === 'soft-modern' ? 'w-full px-4 py-2.5 rounded-xl font-medium bg-gradient-to-br from-slate-50 to-slate-100 text-slate-700 shadow-[6px_6px_12px_rgba(0,0,0,0.08),-6px_-6px_12px_rgba(255,255,255,0.9)] hover:shadow-[3px_3px_8px_rgba(0,0,0,0.12)] active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1)] transition-all duration-200' : 'w-full px-4 py-2.5 rounded-xl font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors'}
+                    className={theme === 'soft-modern' ? 'btn-secondary w-full px-4 py-2.5 rounded-xl font-medium transition-all' : 'w-full px-4 py-2.5 rounded-xl font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors'}
                   >
                     Clear All Filters
                   </button>
@@ -449,10 +435,10 @@ export default function Tasks() {
             )}
 
             {viewMode === 'table' && (
-              <div className={theme === 'soft-modern' ? 'overflow-hidden rounded-3xl border border-white/50' : 'overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700'} style={theme === 'soft-modern' ? { background: '#F8F6F2', boxShadow: '8px 8px 16px rgba(0,0,0,0.08), -8px -8px 16px rgba(255,255,255,0.9)' } : undefined}>
+              <div className={theme === 'soft-modern' ? 'card overflow-hidden' : 'overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700'}>
                 <div className="w-full overflow-x-auto custom-scrollbar">
                   <table className="w-full min-w-[900px]">
-                    <thead className={theme === 'soft-modern' ? 'bg-gradient-to-br from-slate-50 to-slate-100 border-b-2 border-slate-200' : 'bg-slate-50 dark:bg-gray-700 border-b-2 border-slate-100 dark:border-gray-600'}>
+                    <thead className={theme === 'soft-modern' ? 'bg-base border-b-2 border-default' : 'bg-slate-50 dark:bg-gray-700 border-b-2 border-slate-100 dark:border-gray-600'}>
                       <tr>
                         <th className="w-12 px-3 py-3 text-left">
                           <input
@@ -723,14 +709,14 @@ export default function Tasks() {
             setShowTaskModal(false);
             setSelectedTask(null);
           }}
-          task={selectedTask}
+          task={selectedTask as any}
           defaultShowOnCalendar={false}
         />
       )}
 
       {showTaskDetailModal && selectedTask && (
         <TaskDetailModal
-          task={selectedTask}
+          task={selectedTask as any}
           isOpen={showTaskDetailModal}
           onClose={() => {
             setShowTaskDetailModal(false);
@@ -738,7 +724,7 @@ export default function Tasks() {
           }}
           onUpdate={async (id, data) => {
             setTasks((prev) =>
-              prev.map((task) => (task.id === id ? { ...task, ...data } : task))
+              prev.map((task) => (task.id === id ? { ...task, ...data } as any : task))
             );
             setShowTaskDetailModal(false);
             setSelectedTask(null);

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  ArrowLeft, Edit, Mail, Phone, MapPin, Building, Calendar,
+  ArrowLeft, Edit, Mail, Phone, Calendar,
   FileText, MessageSquare, CheckSquare, Activity, DollarSign,
-  Plus, MoreVertical, Send, X, RefreshCw, Users
+  Plus, MoreVertical, Send, X, RefreshCw, Users, Trash2, Edit2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCustomerStore } from '@/stores/customerStore';
@@ -16,25 +16,39 @@ import TimePickerButtons from '@/components/shared/TimePickerButtons';
 import DurationPicker from '@/components/shared/DurationPicker';
 import TaskModal from '@/components/tasks/TaskModal';
 import toast from 'react-hot-toast';
+import type { Customer } from '@/types/database.types';
+import type { Quote, Invoice } from '@/types/app.types';
+import type { Task } from '@/stores/taskStore';
 
 type TabType = 'overview' | 'communications' | 'documents' | 'tasks' | 'activity';
 
 export const CustomerProfile: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentCustomer, fetchCustomerById, loading } = useCustomerStore();
+  const {
+    currentCustomer,
+    fetchCustomerById,
+    loading,
+    notes,
+    fetchNotes,
+    addNote: addNoteStore,
+    updateNote: updateNoteStore,
+    deleteNote: deleteNoteStore
+  } = useCustomerStore();
   const { quotes, fetchQuotes } = useQuoteStore();
   const { invoices, fetchInvoices } = useInvoiceStore();
-  const { tasks, fetchTasks, getTasksByCustomer } = useTaskStore();
+  const { fetchTasks } = useTaskStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
-  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [editingNote, setEditingNote] = useState<any>(null);
 
   useEffect(() => {
     if (id) {
       fetchCustomerById(id);
+      fetchNotes(id);
       fetchQuotes();
       fetchInvoices();
       fetchTasks();
@@ -49,10 +63,10 @@ export const CustomerProfile: React.FC = () => {
     );
   }
 
-  const customerQuotes = quotes.filter(q => q.customer_id === id);
-  const customerInvoices = invoices.filter(inv => inv.customer_id === id);
-  const totalValue = customerInvoices.reduce((sum, inv) => sum + inv.total_amount, 0);
-  const pendingInvoices = customerInvoices.filter(inv => inv.status !== 'paid').reduce((sum, inv) => sum + inv.amount_due, 0);
+  const customerQuotes = quotes.filter((q: Quote) => q.customer_id === id);
+  const customerInvoices = invoices.filter((inv: Invoice) => inv.customer_id === id);
+  const totalValue = customerInvoices.reduce((sum: number, inv: Invoice) => sum + inv.total_amount, 0);
+  const pendingInvoices = customerInvoices.filter((inv: Invoice) => inv.status !== 'paid').reduce((sum: number, inv: Invoice) => sum + inv.amount_due, 0);
 
   const handleScheduleMeeting = () => {
     setShowScheduleModal(true);
@@ -91,90 +105,68 @@ export const CustomerProfile: React.FC = () => {
           </div>
         </div>
 
-        <div className="px-6 py-6">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center text-white text-xl font-bold shadow-sm">
                 {currentCustomer.name.charAt(0).toUpperCase()}
               </div>
 
               <div>
-                <div className="flex items-center space-x-3 mb-2">
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="flex items-center space-x-3">
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                     {currentCustomer.name}
                   </h1>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    currentCustomer.status === 'Active'
-                      ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                  }`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${currentCustomer.status === 'Active'
+                    ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    }`}>
                     {currentCustomer.status}
                   </span>
                 </div>
-
-                {currentCustomer.company && (
-                  <p className="text-gray-600 dark:text-gray-400 mb-3 flex items-center">
-                    <Building size={16} className="mr-2" />
-                    {currentCustomer.company}
-                  </p>
-                )}
-
-                <div className="flex items-center space-x-4 text-sm">
+                <div className="flex items-center space-x-4 text-xs mt-0.5">
                   {currentCustomer.email && (
-                    <a
-                      href={`mailto:${currentCustomer.email}`}
-                      className="flex items-center text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                    >
-                      <Mail size={16} className="mr-1.5" />
-                      {currentCustomer.email}
+                    <a href={`mailto:${currentCustomer.email}`} className="text-gray-500 hover:text-primary-600 flex items-center">
+                      <Mail size={12} className="mr-1" /> {currentCustomer.email}
                     </a>
                   )}
                   {currentCustomer.phone && (
-                    <a
-                      href={`tel:${currentCustomer.phone}`}
-                      className="flex items-center text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                    >
-                      <Phone size={16} className="mr-1.5" />
-                      {currentCustomer.phone}
-                    </a>
+                    <span className="text-gray-500 flex items-center">
+                      <Phone size={12} className="mr-1" /> {currentCustomer.phone}
+                    </span>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <button className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                <Send size={16} className="mr-2" />
-                Email
-              </button>
-              <Link
-                to={`/customers/${id}/edit`}
-                className="flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-              >
-                <Edit size={16} className="mr-2" />
-                Edit
-              </Link>
-            </div>
-          </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-6 mr-6 border-r border-gray-100 dark:border-gray-700 pr-6">
+                <div className="text-center">
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-0.5">Value</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">${totalValue.toLocaleString()}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-0.5">Quotes</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{customerQuotes.length}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-0.5">Pending</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">${pendingInvoices.toLocaleString()}</p>
+                </div>
+              </div>
 
-          <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Value</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${totalValue.toFixed(2)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Open Quotes</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{customerQuotes.length}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Pending Invoices</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${pendingInvoices.toFixed(2)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Last Contact</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {currentCustomer.last_contact_date ? format(new Date(currentCustomer.last_contact_date), 'MMM d') : '—'}
-              </p>
+              <div className="flex items-center space-x-2">
+                <button className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                  <Send size={18} />
+                </button>
+                <Link
+                  to={`/customers/${id}/edit`}
+                  className="flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+                >
+                  <Edit size={16} className="mr-2" />
+                  Edit Profile
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -193,11 +185,10 @@ export const CustomerProfile: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`flex items-center py-4 border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-primary-600 text-primary-600 dark:text-primary-400'
-                      : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                  }`}
+                  className={`flex items-center py-4 border-b-2 transition-colors ${activeTab === tab.id
+                    ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
                 >
                   <Icon size={18} className="mr-2" />
                   {tab.label}
@@ -218,7 +209,21 @@ export const CustomerProfile: React.FC = () => {
             onCreateQuote={handleCreateQuote}
             onCreateInvoice={handleCreateInvoice}
             onAddTask={handleAddTask}
-            onAddNote={() => setShowAddNoteModal(true)}
+            onAddNote={() => {
+              setEditingNote(null);
+              setShowNoteModal(true);
+            }}
+            onEditNote={(note) => {
+              setEditingNote(note);
+              setShowNoteModal(true);
+            }}
+            onDeleteNote={async (id) => {
+              if (confirm('Are you sure you want to delete this note?')) {
+                await deleteNoteStore(id);
+                toast.success('Note deleted');
+              }
+            }}
+            notes={notes}
           />
         )}
         {activeTab === 'communications' && <CommunicationsTab customer={currentCustomer} />}
@@ -248,11 +253,26 @@ export const CustomerProfile: React.FC = () => {
         />
       )}
 
-      {showAddNoteModal && (
-        <AddNoteModal
-          isOpen={showAddNoteModal}
-          onClose={() => setShowAddNoteModal(false)}
+      {showNoteModal && (
+        <NoteModal
+          isOpen={showNoteModal}
+          onClose={() => {
+            setShowNoteModal(false);
+            setEditingNote(null);
+          }}
           customer={currentCustomer}
+          note={editingNote}
+          onSave={async (data) => {
+            if (editingNote) {
+              await updateNoteStore(editingNote.id, data);
+              toast.success('Note updated');
+            } else {
+              await addNoteStore(data);
+              toast.success('Note added');
+            }
+            setShowNoteModal(false);
+            setEditingNote(null);
+          }}
         />
       )}
     </div>
@@ -267,7 +287,10 @@ function OverviewTab({
   onCreateQuote,
   onCreateInvoice,
   onAddTask,
-  onAddNote
+  onAddNote,
+  onEditNote,
+  onDeleteNote,
+  notes
 }: {
   customer: any;
   quotes: any[];
@@ -277,6 +300,9 @@ function OverviewTab({
   onCreateInvoice: () => void;
   onAddTask: () => void;
   onAddNote: () => void;
+  onEditNote: (note: any) => void;
+  onDeleteNote: (id: string) => void;
+  notes: any[];
 }) {
   return (
     <div className="max-w-6xl mx-auto grid grid-cols-3 gap-6">
@@ -347,11 +373,10 @@ function OverviewTab({
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900 dark:text-white">${quote.total_amount.toFixed(2)}</p>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      quote.status === 'accepted' ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' :
+                    <span className={`text-xs px-2 py-1 rounded-full ${quote.status === 'accepted' ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' :
                       quote.status === 'sent' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' :
-                      'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                    }`}>
+                        'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                      }`}>
                       {quote.status}
                     </span>
                   </div>
@@ -395,11 +420,10 @@ function OverviewTab({
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900 dark:text-white">${invoice.total_amount.toFixed(2)}</p>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      invoice.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' :
+                    <span className={`text-xs px-2 py-1 rounded-full ${invoice.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' :
                       invoice.status === 'overdue' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400' :
-                      'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400'
-                    }`}>
+                        'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400'
+                      }`}>
                       {invoice.status}
                     </span>
                   </div>
@@ -460,11 +484,38 @@ function OverviewTab({
             </button>
           </div>
 
-          {customer.notes ? (
-            <p className="text-sm text-gray-600 dark:text-gray-400">{customer.notes}</p>
+          {notes && notes.length > 0 ? (
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
+              {notes.map((note) => (
+                <div key={note.id} className="group p-3 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-primary-500/50 transition-all">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-xs text-gray-800 dark:text-gray-200 flex-1 whitespace-pre-wrap leading-relaxed">{note.content}</p>
+                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => onEditNote(note)}
+                        className="p-1 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                      >
+                        <Edit2 size={12} />
+                      </button>
+                      <button
+                        onClick={() => onDeleteNote(note.id)}
+                        className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-[10px] text-gray-400 font-medium">
+                      {format(new Date(note.created_at), 'MMM d, h:mm a')}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
-            <div className="text-center py-6">
-              <p className="text-sm text-gray-600 dark:text-gray-400">No notes yet</p>
+            <div className="text-center py-6 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-lg">
+              <p className="text-[11px] text-gray-500">No notes yet</p>
             </div>
           )}
         </div>
@@ -483,7 +534,7 @@ function OverviewTab({
             <span className="px-2 py-1 bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 rounded text-xs">
               {customer.customer_type}
             </span>
-            {customer.tags && customer.tags.map((tag: string, idx: number) => (
+            {customer.tags && (customer.tags as string[]).map((tag, idx) => (
               <span key={idx} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">
                 {tag}
               </span>
@@ -495,7 +546,7 @@ function OverviewTab({
   );
 }
 
-function CommunicationsTab({ customer }: { customer: any }) {
+function CommunicationsTab({ customer: _customer }: { customer: Customer }) {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
@@ -516,7 +567,7 @@ function CommunicationsTab({ customer }: { customer: any }) {
   );
 }
 
-function DocumentsTab({ customer }: { customer: any }) {
+function DocumentsTab({ customer: _customer }: { customer: Customer }) {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
@@ -541,17 +592,17 @@ function DocumentsTab({ customer }: { customer: any }) {
   );
 }
 
-function TasksTab({ customer, onAddTask }: { customer: any; onAddTask: () => void }) {
+function TasksTab({ customer, onAddTask }: { customer: Customer; onAddTask: () => void }) {
   const { getTasksByCustomer } = useTaskStore();
   const [showTaskModal, setShowTaskModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const { fetchTasks } = useTaskStore();
 
   const customerTasks = getTasksByCustomer(customer.id);
   const pendingTasks = customerTasks.filter(t => t.status === 'pending' || t.status === 'in_progress');
   const completedTasks = customerTasks.filter(t => t.status === 'completed');
 
-  const handleTaskClick = (task: any) => {
+  const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
     setShowTaskModal(true);
   };
@@ -655,16 +706,14 @@ function TasksTab({ customer, onAddTask }: { customer: any; onAddTask: () => voi
                           </div>
 
                           <div className="flex flex-col items-end gap-2">
-                            <span className={`w-2 h-2 rounded-full ${
-                              task.priority === 'urgent' ? 'bg-red-500' :
+                            <span className={`w-2 h-2 rounded-full ${task.priority === 'urgent' ? 'bg-red-500' :
                               task.priority === 'high' ? 'bg-orange-500' :
-                              task.priority === 'medium' ? 'bg-yellow-500' :
-                              'bg-green-500'
-                            }`} />
-                            <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                              task.status === 'in_progress' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                                task.priority === 'medium' ? 'bg-yellow-500' :
+                                  'bg-green-500'
+                              }`} />
+                            <span className={`px-2 py-1 text-xs rounded-full font-medium ${task.status === 'in_progress' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
                               'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
-                            }`}>
+                              }`}>
                               {task.status === 'in_progress' ? 'In Progress' : 'Pending'}
                             </span>
                           </div>
@@ -747,7 +796,7 @@ function TasksTab({ customer, onAddTask }: { customer: any; onAddTask: () => voi
   );
 }
 
-function ActivityTab({ customer }: { customer: any }) {
+function ActivityTab({ customer }: { customer: Customer }) {
   const { getEventsByCustomer } = useCalendarStore();
   const { getTasksByCustomer } = useTaskStore();
   const { quotes } = useQuoteStore();
@@ -758,7 +807,16 @@ function ActivityTab({ customer }: { customer: any }) {
   const customerQuotes = quotes.filter(q => q.customer_id === customer.id);
   const customerInvoices = invoices.filter(inv => inv.customer_id === customer.id);
 
-  const allActivities = [
+  interface ActivityItem {
+    type: string;
+    title: string;
+    description?: string | null;
+    date: Date;
+    status?: string | null;
+    [key: string]: any;
+  }
+
+  const allActivities: ActivityItem[] = [
     ...customerEvents.map(event => ({
       type: 'event',
       title: event.title,
@@ -793,7 +851,9 @@ function ActivityTab({ customer }: { customer: any }) {
     {
       type: 'created',
       title: 'Customer created',
+      description: 'Initial record created',
       date: new Date(customer.created_at),
+      status: null,
     },
   ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
@@ -844,17 +904,16 @@ function ActivityTab({ customer }: { customer: any }) {
                       </p>
                     </div>
                     {activity.status && (
-                      <span className={`ml-2 px-2 py-1 rounded text-xs font-medium flex-shrink-0 ${
-                        activity.status === 'scheduled' || activity.status === 'pending'
-                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                          : activity.status === 'completed' || activity.status === 'paid'
+                      <span className={`ml-2 px-2 py-1 rounded text-xs font-medium flex-shrink-0 ${activity.status === 'scheduled' || activity.status === 'pending'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : activity.status === 'completed' || activity.status === 'paid'
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                           : activity.status === 'in_progress'
-                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                          : activity.status === 'draft' || activity.status === 'sent'
-                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                      }`}>
+                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                            : activity.status === 'draft' || activity.status === 'sent'
+                              ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        }`}>
                         {activity.status}
                       </span>
                     )}
@@ -875,7 +934,7 @@ function ActivityTab({ customer }: { customer: any }) {
   );
 }
 
-function ScheduleMeetingModal({ isOpen, onClose, customer }: { isOpen: boolean; onClose: () => void; customer: any }) {
+function ScheduleMeetingModal({ isOpen, onClose, customer }: { isOpen: boolean; onClose: () => void; customer: Customer }) {
   const { createEvent } = useCalendarStore();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -956,7 +1015,7 @@ function ScheduleMeetingModal({ isOpen, onClose, customer }: { isOpen: boolean; 
         color_code: '#10b981',
       };
 
-      const newEvent = await createEvent(eventData);
+      const newEvent = await createEvent(eventData as any);
 
       if (newEvent) {
         console.log('✅ Meeting scheduled:', newEvent);
@@ -1068,128 +1127,81 @@ function ScheduleMeetingModal({ isOpen, onClose, customer }: { isOpen: boolean; 
   );
 }
 
-function AddTaskModal({ isOpen, onClose, customer }: { isOpen: boolean; onClose: () => void; customer: any }) {
-  const [formData, setFormData] = useState({
-    title: '',
-    due_date: '',
-    priority: 'medium',
-  });
+
+
+function NoteModal({
+  isOpen,
+  onClose,
+  customer,
+  note,
+  onSave
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  customer: any;
+  note?: any;
+  onSave: (data: any) => Promise<void>
+}) {
+  const [content, setContent] = useState(note?.content || '');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (note) setContent(note.content);
+    else setContent('');
+  }, [note]);
 
   if (!isOpen) return null;
+
+  const handleSave = async () => {
+    if (!content.trim()) return;
+    setSaving(true);
+    try {
+      await onSave({
+        customer_id: customer.id,
+        content: content.trim()
+      });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Add Task
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            {note ? 'Edit Note' : 'Add Note'}
           </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Task Title</label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="Follow up with customer"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Due Date</label>
-            <input
-              type="date"
-              value={formData.due_date}
-              onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Priority</label>
-            <select
-              value={formData.priority}
-              onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="urgent">Urgent</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-          >
-            Add Task
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AddNoteModal({ isOpen, onClose, customer }: { isOpen: boolean; onClose: () => void; customer: any }) {
-  const [note, setNote] = useState('');
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Add Note
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
             <X size={20} />
           </button>
         </div>
 
         <div className="p-6">
           <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
             rows={6}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            placeholder="Add a note about this customer..."
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+            placeholder="Type your note here..."
+            autoFocus
           />
         </div>
 
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             Cancel
           </button>
           <button
-            onClick={onClose}
-            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+            onClick={handleSave}
+            disabled={saving || !content.trim()}
+            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 shadow-sm"
           >
-            Save Note
+            {saving ? 'Saving...' : 'Save Note'}
           </button>
         </div>
       </div>

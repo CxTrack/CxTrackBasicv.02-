@@ -19,6 +19,7 @@ export const DEMO_STORAGE_KEYS = {
   calendar: 'cxtrack_demo_calendar',
   tasks: 'cxtrack_demo_tasks',
   calls: 'cxtrack_demo_calls',
+  customer_notes: 'cxtrack_demo_customer_notes',
 } as const;
 
 export const isDemoMode = () => DEMO_MODE_CONFIG.enabled;

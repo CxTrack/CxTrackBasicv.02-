@@ -21,6 +21,7 @@ import {
   GripVertical,
   TrendingUp,
 } from 'lucide-react';
+import { useCoPilot } from '../contexts/CoPilotContext';
 
 type NavItem = {
   path: string;
@@ -48,6 +49,7 @@ export const DashboardLayout: React.FC = () => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const { theme, toggleTheme } = useThemeStore();
   const { user } = useAuthContext();
+  const { isOpen: isCoPilotOpen, panelSide } = useCoPilot();
   const { fetchUserOrganizations } = useOrganizationStore();
   const location = useLocation();
 
@@ -113,41 +115,26 @@ export const DashboardLayout: React.FC = () => {
     <div className="h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-gray-900">
       {/* Desktop Sidebar - Hidden on Mobile */}
       <aside
-        className={theme === 'soft-modern' ? "hidden md:flex md:flex-col md:w-64 border-r border-white/50" : "hidden md:flex md:flex-col md:w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"}
-        style={theme === 'soft-modern' ? {
-          background: '#EFEAE4',
-          boxShadow: '4px 0 12px rgba(0,0,0,0.05)'
-        } : undefined}
+        className={`${theme === 'soft-modern' ? "hidden md:flex md:flex-col md:w-64 sidebar" : "hidden md:flex md:flex-col md:w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"} transition-all duration-300 ${isCoPilotOpen && panelSide === 'left' ? 'md:ml-[400px]' : ''
+          }`}
       >
         {/* Logo */}
-        <div className={theme === 'soft-modern' ? "p-4 border-b border-white/50" : "p-4 border-b border-gray-200 dark:border-gray-700"}>
-          <h1 className="text-xl font-bold" style={theme === 'soft-modern' ? { color: '#4A5F80' } : undefined}>CxTrack</h1>
+        <div className={theme === 'soft-modern' ? "p-6 border-b border-default" : "p-4 border-b border-gray-200 dark:border-gray-700"}>
+          <h1 className={theme === 'soft-modern' ? "text-xl font-semibold text-primary" : "text-xl font-bold text-gray-900 dark:text-white"}>CxTrack</h1>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+        <nav className={theme === 'soft-modern' ? "flex-1 overflow-y-auto p-4 space-y-2" : "flex-1 overflow-y-auto p-4 space-y-1"}>
           <Link
             to={HOME_ITEM.path}
             className={
               theme === 'soft-modern'
-                ? `flex items-center px-3 py-2.5 rounded-lg transition-all ${
-                    isActive(HOME_ITEM.path) ? '' : ''
-                  }`
-                : `flex items-center px-3 py-2.5 rounded-lg transition-colors ${
-                    isActive(HOME_ITEM.path)
-                      ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`
+                ? `nav-item flex items-center px-4 py-3 ${isActive(HOME_ITEM.path) ? 'active' : ''}`
+                : `flex items-center px-3 py-2 rounded-lg transition-colors ${isActive(HOME_ITEM.path)
+                  ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`
             }
-            style={theme === 'soft-modern' ? (
-              isActive(HOME_ITEM.path) ? {
-                background: 'rgba(255, 255, 255, 0.6)',
-                boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.06), inset -2px -2px 4px rgba(255,255,255,0.6)',
-                color: '#2D2D2D'
-              } : {
-                color: '#6B6B6B'
-              }
-            ) : undefined}
           >
             <HOME_ITEM.icon size={20} className="mr-3" />
             <span className="font-medium">{HOME_ITEM.label}</span>
@@ -166,29 +153,16 @@ export const DashboardLayout: React.FC = () => {
                 to={item.path}
                 className={
                   theme === 'soft-modern'
-                    ? `flex items-center px-3 py-2.5 rounded-lg transition-all ${
-                        isActive(item.path) ? '' : ''
-                      }`
-                    : `flex items-center px-3 py-2.5 rounded-lg transition-colors ${
-                        isActive(item.path)
-                          ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`
+                    ? `nav-item flex items-center px-4 py-3 ${isActive(item.path) ? 'active' : ''}`
+                    : `flex items-center px-3 py-2 rounded-lg transition-colors ${isActive(item.path)
+                      ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`
                 }
-                style={theme === 'soft-modern' ? (
-                  isActive(item.path) ? {
-                    background: 'rgba(255, 255, 255, 0.6)',
-                    boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.06), inset -2px -2px 4px rgba(255,255,255,0.6)',
-                    color: '#2D2D2D'
-                  } : {
-                    color: '#6B6B6B'
-                  }
-                ) : undefined}
               >
                 <GripVertical
                   size={16}
-                  className="mr-2 opacity-0 group-hover:opacity-50 transition-opacity cursor-grab active:cursor-grabbing"
-                  style={theme === 'soft-modern' ? { color: '#9CA3AF' } : undefined}
+                  className={theme === 'soft-modern' ? "mr-2 opacity-0 group-hover:opacity-30 transition-opacity cursor-grab active:cursor-grabbing text-tertiary" : "mr-2 opacity-0 group-hover:opacity-50 transition-opacity cursor-grab active:cursor-grabbing"}
                 />
                 <item.icon size={20} className="mr-3" />
                 <span className="font-medium">{item.label}</span>
@@ -200,24 +174,12 @@ export const DashboardLayout: React.FC = () => {
             to={SETTINGS_ITEM.path}
             className={
               theme === 'soft-modern'
-                ? `flex items-center px-3 py-2.5 rounded-lg transition-all ${
-                    isActive(SETTINGS_ITEM.path) ? '' : ''
-                  }`
-                : `flex items-center px-3 py-2.5 rounded-lg transition-colors ${
-                    isActive(SETTINGS_ITEM.path)
-                      ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`
+                ? `nav-item flex items-center px-4 py-3 ${isActive(SETTINGS_ITEM.path) ? 'active' : ''}`
+                : `flex items-center px-3 py-2 rounded-lg transition-colors ${isActive(SETTINGS_ITEM.path)
+                  ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`
             }
-            style={theme === 'soft-modern' ? (
-              isActive(SETTINGS_ITEM.path) ? {
-                background: 'rgba(255, 255, 255, 0.6)',
-                boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.06), inset -2px -2px 4px rgba(255,255,255,0.6)',
-                color: '#2D2D2D'
-              } : {
-                color: '#6B6B6B'
-              }
-            ) : undefined}
           >
             <SETTINGS_ITEM.icon size={20} className="mr-3" />
             <span className="font-medium">{SETTINGS_ITEM.label}</span>
@@ -225,31 +187,25 @@ export const DashboardLayout: React.FC = () => {
         </nav>
 
         {/* User Profile */}
-        <div className={theme === 'soft-modern' ? "p-4 border-t border-white/50" : "p-4 border-t border-gray-200 dark:border-gray-700"}>
+        <div className={theme === 'soft-modern' ? "p-4 border-t border-default" : "p-4 border-t border-gray-200 dark:border-gray-700"}>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <div
-                className={theme === 'soft-modern' ? "w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium" : "w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium"}
+                className={theme === 'soft-modern' ? "w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium bg-base" : "w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium"}
                 style={theme === 'soft-modern' ? {
-                  background: 'linear-gradient(135deg, #A8C5E8, #90B5D8)',
-                  boxShadow: '2px 2px 4px rgba(0,0,0,0.06)'
+                  background: 'var(--sm-accent-primary)',
                 } : undefined}
               >
                 A
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium" style={theme === 'soft-modern' ? { color: '#2D2D2D' } : undefined}>Admin User</p>
-                <p className="text-xs" style={theme === 'soft-modern' ? { color: '#9CA3AF' } : undefined}>Dev Mode</p>
+                <p className={theme === 'soft-modern' ? "text-sm font-medium text-primary" : "text-sm font-medium text-gray-900 dark:text-white"}>Admin User</p>
+                <p className={theme === 'soft-modern' ? "text-xs text-tertiary" : "text-xs text-gray-500 dark:text-gray-400"}>Dev Mode</p>
               </div>
             </div>
             <button
               onClick={toggleTheme}
-              className={theme === 'soft-modern' ? "p-2 rounded-lg transition-all" : "p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"}
-              style={theme === 'soft-modern' ? {
-                background: 'rgba(255, 255, 255, 0.4)',
-                boxShadow: '3px 3px 6px rgba(0,0,0,0.06), -3px -3px 6px rgba(255,255,255,0.6)',
-                color: '#6B6B6B'
-              } : undefined}
+              className={theme === 'soft-modern' ? "p-2 rounded-lg transition-all btn-ghost" : "p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"}
             >
               {theme === 'light' ? <Moon size={18} /> : theme === 'dark' ? <Sun size={18} /> : theme === 'soft-modern' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
@@ -277,7 +233,8 @@ export const DashboardLayout: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+      <main className={`flex-1 overflow-y-auto pb-20 md:pb-0 transition-all duration-300 ${isCoPilotOpen ? (panelSide === 'left' ? 'md:ml-[400px]' : 'md:mr-[400px]') : ''
+        }`}>
         <Outlet />
       </main>
 
@@ -288,11 +245,10 @@ export const DashboardLayout: React.FC = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${
-                isActive(item.path)
-                  ? 'text-indigo-600 dark:text-indigo-400'
-                  : 'text-gray-500 dark:text-gray-400'
-              }`}
+              className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${isActive(item.path)
+                ? 'text-indigo-600 dark:text-indigo-400'
+                : 'text-gray-500 dark:text-gray-400'
+                }`}
             >
               <item.icon size={22} />
               <span className="text-xs mt-1 font-medium">{item.label}</span>

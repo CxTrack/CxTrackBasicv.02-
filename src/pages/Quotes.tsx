@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search, Plus, Filter, FileText, DollarSign,
-  TrendingUp, Clock, MoreVertical, Edit,
-  Send, CheckCircle, XCircle, Copy, Archive, CheckCircle2, Trash2
+  TrendingUp, Clock, MoreVertical,
+  CheckCircle, Archive, CheckCircle2, Trash2
 } from 'lucide-react';
 import { useQuoteStore } from '../stores/quoteStore';
 import { useOrganizationStore } from '../stores/organizationStore';
@@ -20,7 +20,7 @@ export default function Quotes() {
   const [selectedQuotes, setSelectedQuotes] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
 
-  const { quotes, loading, fetchQuotes } = useQuoteStore();
+  const { quotes, loading, fetchQuotes, deleteQuote } = useQuoteStore();
   const { currentOrganization, demoMode, getOrganizationId } = useOrganizationStore();
   const { theme } = useThemeStore();
 
@@ -104,6 +104,17 @@ export default function Quotes() {
     setSelectAll(false);
   };
 
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this quote?')) return;
+    try {
+      await deleteQuote(id);
+      toast.success('Quote deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete quote');
+    }
+  };
+
   const getStatusColor = (status: QuoteStatus) => {
     switch (status) {
       case 'draft':
@@ -138,94 +149,93 @@ export default function Quotes() {
   return (
     <PageContainer className="gap-6">
       <Card className="border-0">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Quotes
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Create and manage customer quotes
-              </p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Quotes
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Create and manage customer quotes
+            </p>
+          </div>
+          <Link
+            to="/quotes/builder"
+            className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium shadow-sm"
+          >
+            <Plus size={20} className="mr-2" />
+            New Quote
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className={theme === 'soft-modern' ? "card p-4" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Total Value</span>
+              <DollarSign size={18} className="text-green-600 dark:text-green-400" />
             </div>
-            <Link
-              to="/quotes/builder"
-              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium shadow-sm"
-            >
-              <Plus size={20} className="mr-2" />
-              New Quote
-            </Link>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              ${stats.totalValue.toLocaleString()}
+            </p>
           </div>
 
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Total Value</span>
-                <DollarSign size={18} className="text-green-600 dark:text-green-400" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${stats.totalValue.toLocaleString()}
-              </p>
+          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Pending</span>
+              <Clock size={18} className="text-blue-600 dark:text-blue-400" />
             </div>
-
-            <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Pending</span>
-                <Clock size={18} className="text-blue-600 dark:text-blue-400" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.sentCount}</p>
-            </div>
-
-            <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Accepted</span>
-                <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.acceptedCount}</p>
-            </div>
-
-            <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Conversion Rate</span>
-                <TrendingUp size={18} className="text-purple-600 dark:text-purple-400" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.conversionRate.toFixed(0)}%
-              </p>
-            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.sentCount}</p>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <div className="flex-1 relative">
-              <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search quotes by number, customer..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Accepted</span>
+              <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
             </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.acceptedCount}</p>
+          </div>
 
-            <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-1">
-              {(['all', 'draft', 'sent', 'accepted', 'declined'] as const).map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setFilterStatus(status)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    filterStatus === status
-                      ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Conversion Rate</span>
+              <TrendingUp size={18} className="text-purple-600 dark:text-purple-400" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {stats.conversionRate.toFixed(0)}%
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-3">
+          <div className="flex-1 relative">
+            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search quotes by number, customer..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-1">
+            {(['all', 'draft', 'sent', 'accepted', 'declined'] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${filterStatus === status
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
-                >
-                  {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            <button className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <Filter size={18} className="text-gray-600 dark:text-gray-400" />
-            </button>
+              >
+                {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
+              </button>
+            ))}
           </div>
+
+          <button className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <Filter size={18} className="text-gray-600 dark:text-gray-400" />
+          </button>
+        </div>
       </Card>
 
       <div className="flex-1 overflow-y-auto">
@@ -255,7 +265,7 @@ export default function Quotes() {
         ) : (
           <Card className="overflow-hidden p-0">
             <table className="w-full">
-              <thead className={theme === 'soft-modern' ? "bg-gradient-to-br from-slate-50 to-slate-100 border-b-2 border-slate-200" : "bg-slate-50 dark:bg-gray-700 border-b-2 border-slate-100 dark:border-gray-600"}>
+              <thead className={theme === 'soft-modern' ? "bg-base border-b border-default" : "bg-slate-50 dark:bg-gray-700 border-b-2 border-slate-100 dark:border-gray-600"}>
                 <tr>
                   <th className="w-12 px-4 py-4 text-left">
                     <input
@@ -349,12 +359,12 @@ export default function Quotes() {
                     </td>
                     <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end space-x-2">
-                        <Link
-                          to={`/quotes/builder/${quote.id}`}
-                          className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                        <button
+                          onClick={(e) => handleDelete(e, quote.id)}
+                          className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors group"
                         >
-                          <Edit size={16} className="text-gray-600 dark:text-gray-400" />
-                        </Link>
+                          <Trash2 size={16} className="text-gray-400 group-hover:text-red-600 transition-colors" />
+                        </button>
                         <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
                           <MoreVertical size={16} className="text-gray-600 dark:text-gray-400" />
                         </button>
