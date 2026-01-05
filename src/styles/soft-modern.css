@@ -1,0 +1,204 @@
+/* Soft Modern Theme - Cohesive Warm Palette with Neumorphic Design */
+
+.soft-modern {
+  background-color: #F5F3EF;
+  color: #2D2D2D;
+}
+
+/* Muted accent colors */
+:root {
+  --sm-blue: #A8C5E8;
+  --sm-blue-dark: #90B5D8;
+  --sm-green: #B8D4C4;
+  --sm-green-dark: #A0C4B0;
+  --sm-purple: #C9B8D4;
+  --sm-purple-dark: #B5A0C4;
+  --sm-orange: #E8C9A8;
+  --sm-orange-dark: #D8B598;
+}
+
+/* Neumorphic card base */
+.soft-modern .neumorph-card {
+  background: #F8F6F2;
+  box-shadow:
+    8px 8px 16px rgba(0, 0, 0, 0.1),
+    -8px -8px 16px rgba(255, 255, 255, 0.9);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Neumorphic button */
+.soft-modern .neumorph-button {
+  background: #F5F3EF;
+  box-shadow:
+    6px 6px 12px rgba(0, 0, 0, 0.08),
+    -6px -6px 12px rgba(255, 255, 255, 0.8);
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.soft-modern .neumorph-button:hover {
+  box-shadow:
+    4px 4px 8px rgba(0, 0, 0, 0.08),
+    -4px -4px 8px rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
+}
+
+.soft-modern .neumorph-button:active {
+  box-shadow:
+    inset 4px 4px 8px rgba(0, 0, 0, 0.08),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+  transform: translateY(0);
+}
+
+/* Input fields */
+.soft-modern .neumorph-input {
+  background: #F5F3EF;
+  box-shadow:
+    inset 4px 4px 8px rgba(0, 0, 0, 0.08),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 1rem;
+  color: #2D2D2D;
+}
+
+.soft-modern .neumorph-input::placeholder {
+  color: #9CA3AF;
+}
+
+.soft-modern .neumorph-input:focus {
+  outline: none;
+  box-shadow:
+    inset 4px 4px 8px rgba(0, 0, 0, 0.08),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.8),
+    0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Icon gradient backgrounds - muted accents */
+.soft-modern .icon-gradient-blue {
+  background: linear-gradient(135deg, #A8C5E8 0%, #90B5D8 100%);
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.06), -2px -2px 6px rgba(255, 255, 255, 0.8);
+}
+
+.soft-modern .icon-gradient-green {
+  background: linear-gradient(135deg, #B8D4C4 0%, #A0C4B0 100%);
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.06), -2px -2px 6px rgba(255, 255, 255, 0.8);
+}
+
+.soft-modern .icon-gradient-purple {
+  background: linear-gradient(135deg, #C9B8D4 0%, #B5A0C4 100%);
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.06), -2px -2px 6px rgba(255, 255, 255, 0.8);
+}
+
+.soft-modern .icon-gradient-orange {
+  background: linear-gradient(135deg, #E8C9A8 0%, #D8B598 100%);
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.06), -2px -2px 6px rgba(255, 255, 255, 0.8);
+}
+
+/* Icon containers */
+.soft-modern .icon-container {
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow:
+    3px 3px 6px rgba(0, 0, 0, 0.06),
+    -3px -3px 6px rgba(255, 255, 255, 0.6);
+  border-radius: 1rem;
+}
+
+/* Badges - muted colors */
+.soft-modern .badge-blue {
+  background: rgba(168, 197, 232, 0.3);
+  color: #4A5F80;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 0.75rem;
+}
+
+.soft-modern .badge-green {
+  background: rgba(184, 212, 196, 0.3);
+  color: #4A6B5A;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 0.75rem;
+}
+
+.soft-modern .badge-purple {
+  background: rgba(201, 184, 212, 0.3);
+  color: #6B5A7A;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 0.75rem;
+}
+
+.soft-modern .badge-orange {
+  background: rgba(232, 201, 168, 0.3);
+  color: #7A6050;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 0.75rem;
+}
+
+/* Primary action button - muted blue */
+.soft-modern .btn-primary {
+  background: linear-gradient(135deg, #A8C5E8 0%, #90B5D8 100%);
+  color: white;
+  box-shadow:
+    6px 6px 12px rgba(0, 0, 0, 0.08),
+    -2px -2px 8px rgba(255, 255, 255, 0.6);
+  border: none;
+  border-radius: 1rem;
+}
+
+.soft-modern .btn-primary:hover {
+  box-shadow:
+    4px 4px 8px rgba(0, 0, 0, 0.08),
+    -2px -2px 8px rgba(255, 255, 255, 0.6);
+}
+
+/* Sidebar/Navigation - warm cream */
+.soft-modern .sidebar {
+  background: #EFEAE4;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.05);
+}
+
+.soft-modern .nav-item {
+  background: transparent;
+  color: #6B6B6B;
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+}
+
+.soft-modern .nav-item:hover {
+  background: rgba(255, 255, 255, 0.4);
+  color: #2D2D2D;
+  box-shadow:
+    3px 3px 6px rgba(0, 0, 0, 0.06),
+    -3px -3px 6px rgba(255, 255, 255, 0.6);
+}
+
+.soft-modern .nav-item.active {
+  background: rgba(255, 255, 255, 0.6);
+  color: #2D2D2D;
+  box-shadow:
+    inset 2px 2px 4px rgba(0, 0, 0, 0.06),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.6);
+}
+
+/* Text colors */
+.soft-modern .text-primary {
+  color: #2D2D2D;
+}
+
+.soft-modern .text-secondary {
+  color: #6B6B6B;
+}
+
+.soft-modern .text-tertiary {
+  color: #9CA3AF;
+}
+
+/* Dividers */
+.soft-modern .divider {
+  background: linear-gradient(90deg,
+    rgba(0, 0, 0, 0.06) 0%,
+    rgba(0, 0, 0, 0.02) 50%,
+    rgba(0, 0, 0, 0.06) 100%
+  );
+  height: 1px;
+}
