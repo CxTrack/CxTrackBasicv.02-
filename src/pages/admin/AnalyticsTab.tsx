@@ -1,5 +1,6 @@
-import { Users, Activity, TrendingUp, Database, Zap } from 'lucide-react';
+import { Users, Activity, Database, Zap, Info } from 'lucide-react';
 import { LineChart, BarChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { HealthScoreCell } from '@/components/HealthScoreCell';
 
 export const AnalyticsTab = () => {
 
@@ -26,51 +27,81 @@ export const AnalyticsTab = () => {
             id: '1',
             name: 'Acme Corp',
             active_users: 45,
-            api_calls: 125000,
+            total_users: 50,
+            api_calls_30d: 125000,
             storage_gb: 45.2,
             calls_made: 120,
             revenue: 2500,
-            health_score: 98
+            subscription_status: 'active',
+            open_tickets: 1,
+            features_used: ['invoices', 'quotes', 'calls', 'pipeline', 'tasks'],
+            last_login_days_ago: 0,
+            payment_failures: 0,
+            error_rate: 0.3,
         },
         {
             id: '2',
             name: 'Globex Inc',
             active_users: 120,
-            api_calls: 450000,
+            total_users: 150,
+            api_calls_30d: 450000,
             storage_gb: 128.5,
             calls_made: 850,
             revenue: 5500,
-            health_score: 85
+            subscription_status: 'active',
+            open_tickets: 2,
+            features_used: ['invoices', 'quotes', 'calls', 'pipeline'],
+            last_login_days_ago: 1,
+            payment_failures: 0,
+            error_rate: 0.5,
         },
         {
             id: '3',
             name: 'Soylent Corp',
-            active_users: 12,
-            api_calls: 5000,
+            active_users: 8,
+            total_users: 12,
+            api_calls_30d: 5000,
             storage_gb: 5.2,
             calls_made: 20,
             revenue: 450,
-            health_score: 45
+            subscription_status: 'past_due',
+            open_tickets: 6,
+            features_used: ['invoices'],
+            last_login_days_ago: 15,
+            payment_failures: 2,
+            error_rate: 3.2,
         },
         {
             id: '4',
             name: 'Initech',
             active_users: 85,
-            api_calls: 210000,
+            total_users: 100,
+            api_calls_30d: 210000,
             storage_gb: 65.8,
             calls_made: 340,
             revenue: 3500,
-            health_score: 92
+            subscription_status: 'active',
+            open_tickets: 0,
+            features_used: ['invoices', 'quotes', 'calls', 'tasks'],
+            last_login_days_ago: 0,
+            payment_failures: 0,
+            error_rate: 0.2,
         },
         {
             id: '5',
             name: 'Umbrella Corp',
-            active_users: 250,
-            api_calls: 890000,
+            active_users: 200,
+            total_users: 250,
+            api_calls_30d: 890000,
             storage_gb: 450.2,
             calls_made: 1200,
             revenue: 12000,
-            health_score: 72
+            subscription_status: 'active',
+            open_tickets: 3,
+            features_used: ['invoices', 'quotes', 'calls'],
+            last_login_days_ago: 2,
+            payment_failures: 1,
+            error_rate: 1.1,
         }
     ];
 
@@ -171,39 +202,41 @@ export const AnalyticsTab = () => {
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white">Organization Metrics</h3>
                 </div>
-                <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
-                        <tr>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Organization</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Active Users</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">API Calls (30d)</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Storage</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Calls Made</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Revenue</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {orgMetrics.map(org => (
-                            <tr key={org.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{org.name}</td>
-                                <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.active_users}</td>
-                                <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.api_calls.toLocaleString()}</td>
-                                <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.storage_gb} GB</td>
-                                <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.calls_made}</td>
-                                <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">${org.revenue}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${org.health_score > 90 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                            org.health_score > 70 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                                'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                        }`}>
-                                        {org.health_score}% Health
-                                    </span>
-                                </td>
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Organization</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Active Users</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">API Calls (30d)</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Storage</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Calls Made</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Revenue</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
+                                    <div className="flex items-center gap-2">
+                                        Account Health
+                                        <Info className="w-4 h-4 text-gray-400" />
+                                    </div>
+                                </th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {orgMetrics.map(org => (
+                                <tr key={org.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{org.name}</td>
+                                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.active_users}/{org.total_users}</td>
+                                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.api_calls_30d.toLocaleString()}</td>
+                                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.storage_gb} GB</td>
+                                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.calls_made}</td>
+                                    <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">${org.revenue}</td>
+                                    <td className="px-6 py-4">
+                                        <HealthScoreCell organization={org} />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Additional Metrics */}
