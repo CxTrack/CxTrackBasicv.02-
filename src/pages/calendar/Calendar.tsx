@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
-  Plus, Settings as SettingsIcon, List, CheckCircle
+  Plus, List, CheckCircle
 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval,
-         isSameMonth, isToday, addMonths, subMonths, startOfWeek,
-         endOfWeek, isSameDay, addDays, subDays, addWeeks, subWeeks } from 'date-fns';
+import {
+  format, startOfMonth, endOfMonth, eachDayOfInterval,
+  isSameMonth, isToday, addMonths, subMonths, startOfWeek,
+  endOfWeek, isSameDay, addDays, subDays, addWeeks, subWeeks
+} from 'date-fns';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useOrganizationStore } from '@/stores/organizationStore';
 import { useTaskStore } from '@/stores/taskStore';
@@ -17,7 +19,7 @@ import TaskModal from '@/components/tasks/TaskModal';
 import WeekView from '@/components/calendar/WeekView';
 import DayView from '@/components/calendar/DayView';
 import AgendaView from '@/components/calendar/AgendaView';
-import { Card, Button, PageContainer } from '@/components/theme/ThemeComponents';
+import { Card, PageContainer } from '@/components/theme/ThemeComponents';
 
 type CalendarView = 'month' | 'week' | 'day' | 'agenda';
 
@@ -33,9 +35,9 @@ export default function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedTask, setSelectedTask] = useState<any>(null);
 
-  const { events, loading, fetchEvents, updateEvent } = useCalendarStore();
+  const { events, fetchEvents, updateEvent } = useCalendarStore();
   const { currentOrganization } = useOrganizationStore();
-  const { tasks, fetchTasks, getTasksByDate } = useTaskStore();
+  const { fetchTasks, getTasksByDate } = useTaskStore();
   const { theme } = useThemeStore();
 
   useEffect(() => {
@@ -102,46 +104,44 @@ export default function Calendar() {
   return (
     <PageContainer>
       <Card className="mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div className="flex items-center space-x-4">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Calendar
             </h1>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">
               Manage your appointments and schedule
             </span>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-between sm:justify-end space-x-3">
             <button
               onClick={() => setShowAgendaPanel(!showAgendaPanel)}
               className={
                 theme === 'soft-modern'
                   ? showAgendaPanel
-                    ? 'p-2 rounded-lg bg-blue-100 text-blue-600 shadow-inner transition-all'
-                    : 'p-2 rounded-lg hover:bg-white text-gray-600 transition-all'
-                  : `p-2 rounded-lg transition-colors ${
-                      showAgendaPanel
-                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
-                    }`
+                    ? 'p-2.5 rounded-xl bg-blue-100 text-blue-600 shadow-inner transition-all'
+                    : 'p-2.5 rounded-xl hover:bg-white text-gray-600 transition-all'
+                  : `p-2.5 rounded-xl transition-colors ${showAgendaPanel
+                    ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
+                  }`
               }
               title="Toggle Agenda Panel"
             >
-              <List size={20} />
+              <List size={22} />
             </button>
 
-            <Button
-              variant="primary"
+            <button
               onClick={() => {
                 setSelectedEvent(null);
                 setShowEventModal(true);
               }}
-              className="flex items-center"
+              className="flex-1 sm:flex-none flex items-center justify-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all font-bold shadow-lg shadow-blue-500/20 active:scale-95 text-sm"
             >
               <Plus size={20} className="mr-2" />
-              New Event
-            </Button>
+              <span>New Event</span>
+            </button>
           </div>
         </div>
 
@@ -196,13 +196,12 @@ export default function Calendar() {
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                  view === v
-                    ? theme === 'soft-modern'
-                      ? 'bg-white shadow-[2px_2px_4px_rgba(0,0,0,0.1)] text-gray-900'
-                      : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${view === v
+                  ? theme === 'soft-modern'
+                    ? 'bg-white shadow-[2px_2px_4px_rgba(0,0,0,0.1)] text-gray-900'
+                    : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
               >
                 {v.charAt(0).toUpperCase() + v.slice(1)}
               </button>
@@ -211,7 +210,7 @@ export default function Calendar() {
         </div>
       </Card>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         <div className={`flex-1 overflow-y-auto ${showAgendaPanel ? 'pr-0' : ''}`}>
           {view === 'month' && (
             <Card className="overflow-hidden p-0">
@@ -221,7 +220,8 @@ export default function Calendar() {
                     key={day}
                     className="px-3 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {day}
+                    <span className="hidden sm:inline">{day}</span>
+                    <span className="sm:hidden">{day.charAt(0)}</span>
                   </div>
                 ))}
               </div>
@@ -239,20 +239,18 @@ export default function Calendar() {
                     <button
                       key={index}
                       onClick={() => handleDateClick(day)}
-                      className={`relative p-2 border-b border-r border-gray-200 dark:border-gray-700 text-left transition-colors ${
-                        !isCurrentMonth
-                          ? 'bg-gray-50 dark:bg-gray-900/50 text-gray-400 dark:text-gray-600'
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                      } ${isSelected ? 'ring-2 ring-inset ring-blue-500' : ''}`}
+                      className={`relative p-2 border-b border-r border-gray-200 dark:border-gray-700 text-left transition-colors ${!isCurrentMonth
+                        ? 'bg-gray-50 dark:bg-gray-900/50 text-gray-400 dark:text-gray-600'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                        } ${isSelected ? 'ring-2 ring-inset ring-blue-500' : ''}`}
                     >
                       <span
-                        className={`inline-flex items-center justify-center w-7 h-7 text-sm font-medium rounded-full ${
-                          isCurrentDay
-                            ? 'bg-blue-600 text-white'
-                            : isCurrentMonth
+                        className={`inline-flex items-center justify-center w-7 h-7 text-sm font-medium rounded-full ${isCurrentDay
+                          ? 'bg-blue-600 text-white'
+                          : isCurrentMonth
                             ? 'text-gray-900 dark:text-white'
                             : 'text-gray-400 dark:text-gray-600'
-                        }`}
+                          }`}
                       >
                         {format(day, 'd')}
                       </span>
@@ -267,9 +265,9 @@ export default function Calendar() {
                             }}
                             className="px-2 py-1 text-xs rounded truncate hover:opacity-80 transition-opacity cursor-pointer"
                             style={{
-                              backgroundColor: `${event.color}20`,
-                              color: event.color,
-                              borderLeft: `3px solid ${event.color}`
+                              backgroundColor: `${event.color_code || '#6366f1'}20`,
+                              color: event.color_code || '#6366f1',
+                              borderLeft: `3px solid ${event.color_code || '#6366f1'}`
                             }}
                           >
                             <span className="font-medium">

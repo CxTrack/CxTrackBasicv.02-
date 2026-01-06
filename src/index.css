@@ -14,13 +14,13 @@
     padding-top: env(safe-area-inset-top);
   }
 
-  /* Hide scrollbar globally but keep functionality */
-  * {
+  /* Utility to hide scrollbar when specifically needed */
+  .scrollbar-hide {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
 
-  *::-webkit-scrollbar {
+  .scrollbar-hide::-webkit-scrollbar {
     display: none; /* Chrome, Safari and Opera */
   }
 

@@ -1,14 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Search, Plus, Filter, Grid, List, Package,
-  DollarSign, TrendingUp, Settings, MoreVertical,
-  Trash2, Eye, Boxes
+  Search, Plus, Grid, List, Package,
+  MoreVertical,
+  Trash2, Eye, Boxes,
+  Zap, ArrowRight,
+  ShoppingCart, BarChart2, PackageOpen
 } from 'lucide-react';
 import { useProductStore } from '../stores/productStore';
 import { useOrganizationStore } from '../stores/organizationStore';
 import { useThemeStore } from '../stores/themeStore';
-import { PageContainer, Card } from '../components/theme/ThemeComponents';
+import { PageContainer, Card, IconBadge } from '../components/theme/ThemeComponents';
 import toast from 'react-hot-toast';
 import type { ProductType } from '../types/app.types';
 
@@ -18,7 +20,7 @@ export default function Products() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { products, loading, fetchProducts, deleteProduct } = useProductStore();
-  const { currentOrganization } = useOrganizationStore();
+  const { currentOrganization, currentMembership } = useOrganizationStore();
   const { theme } = useThemeStore();
 
   useEffect(() => {
@@ -57,6 +59,10 @@ export default function Products() {
   }, [products]);
 
   const handleDelete = async (id: string) => {
+    if (currentMembership?.role !== 'owner' && currentMembership?.role !== 'admin') {
+      toast.error('You do not have permission to delete products');
+      return;
+    }
     if (!confirm('Are you sure you want to delete this product?')) return;
     try {
       await deleteProduct(id);
@@ -81,12 +87,14 @@ export default function Products() {
           >
             <Eye size={18} className="text-gray-900 dark:text-white" />
           </Link>
-          <button
-            onClick={() => handleDelete(product.id)}
-            className="p-2 bg-white dark:bg-gray-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 hover:scale-110 transition-all group shadow-sm"
-          >
-            <Trash2 size={18} className="text-gray-900 dark:text-white group-hover:text-red-600 transition-colors" />
-          </button>
+          {(currentMembership?.role === 'owner' || currentMembership?.role === 'admin') && (
+            <button
+              onClick={() => handleDelete(product.id)}
+              className="p-2 bg-white dark:bg-gray-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 hover:scale-110 transition-all group shadow-sm"
+            >
+              <Trash2 size={18} className="text-gray-900 dark:text-white group-hover:text-red-600 transition-colors" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -146,15 +154,21 @@ export default function Products() {
         </div>
 
         {product.track_inventory && (
-          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600 dark:text-gray-400">Stock:</span>
-              <span className={`font-medium ${product.low_stock_threshold && product.quantity_on_hand <= product.low_stock_threshold
-                ? 'text-red-600 dark:text-red-400'
-                : 'text-gray-900 dark:text-white'
-                }`}>
-                {product.quantity_on_hand} units
+          <div className="mt-auto pt-3">
+            <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-slate-500 mb-1.5 font-bold">
+              <span>Inventory</span>
+              <span className={product.quantity_on_hand <= (product.low_stock_threshold || 5) ? 'text-rose-500' : 'text-emerald-500'}>
+                {product.quantity_on_hand} in stock
               </span>
+            </div>
+            <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${product.quantity_on_hand <= (product.low_stock_threshold || 5)
+                  ? 'bg-rose-500'
+                  : 'bg-emerald-500'
+                  }`}
+                style={{ width: `${Math.min((product.quantity_on_hand / 50) * 100, 100)}%` }}
+              />
             </div>
           </div>
         )}
@@ -174,117 +188,123 @@ export default function Products() {
   }
 
   return (
-    <PageContainer className="gap-6">
-      <Card className="border-0">
-        <div className="flex items-center justify-between mb-6">
+    <PageContainer className="gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Product Catalog
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Manage your inventory, services, and digital assets
+          </p>
+        </div>
+        <Link
+          to="/products/new"
+          className="flex items-center justify-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all font-bold shadow-lg shadow-blue-500/20 active:scale-95 text-sm"
+        >
+          <Plus size={18} className="mr-2" />
+          <span className="whitespace-nowrap">Add Product</span>
+        </Link>
+      </div>
+
+      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card hover className="flex items-center gap-4 p-4 group h-28">
+          <IconBadge
+            icon={<ShoppingCart size={20} className="text-blue-600" />}
+            gradient="bg-blue-50"
+            size="md"
+          />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Products & Services
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Manage your product catalog and service offerings
-            </p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total Items</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stats.totalProducts + stats.activeServices}</h3>
           </div>
-          <Link
-            to="/products/new"
-            className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium shadow-sm"
-          >
-            <Plus size={20} className="mr-2" />
-            Add Product
-          </Link>
+          <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+        </Card>
+
+        <Card hover className="flex items-center gap-4 p-4 group h-28">
+          <IconBadge
+            icon={<Zap size={20} className="text-emerald-600" />}
+            gradient="bg-emerald-50"
+            size="md"
+          />
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Services</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stats.activeServices}</h3>
+          </div>
+          <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+        </Card>
+
+        <Card hover className="flex items-center gap-4 p-4 group h-28">
+          <IconBadge
+            icon={<BarChart2 size={20} className="text-orange-600" />}
+            gradient="bg-orange-50"
+            size="md"
+          />
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Avg Price</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">${stats.avgPrice.toFixed(0)}</h3>
+          </div>
+          <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+        </Card>
+
+        <Card hover className="flex items-center gap-4 p-4 group h-28">
+          <IconBadge
+            icon={<PackageOpen size={20} className="text-purple-600" />}
+            gradient="bg-purple-50"
+            size="md"
+          />
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total Value</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">${(stats.totalValue / 1000).toFixed(1)}k</h3>
+          </div>
+          <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+        </Card>
+      </div>
+
+      <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4 bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-gray-700">
+        <div className="flex bg-slate-100 dark:bg-gray-700 p-1 rounded-lg">
+          {(['all', 'product', 'service', 'bundle'] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${filterType === type
+                ? 'bg-white dark:bg-gray-800 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+                }`}
+            >
+              {type}s
+            </button>
+          ))}
         </div>
 
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className={theme === 'soft-modern' ? "card p-4" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Total Products</span>
-              <Package size={18} className="text-blue-600 dark:text-blue-400" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalProducts}</p>
-          </div>
-
-          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Active Services</span>
-              <Settings size={18} className="text-purple-600 dark:text-purple-400" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.activeServices}</p>
-          </div>
-
-          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Avg. Price</span>
-              <DollarSign size={18} className="text-green-600 dark:text-green-400" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              ${stats.avgPrice.toFixed(0)}
-            </p>
-          </div>
-
-          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Total Value</span>
-              <TrendingUp size={18} className="text-pink-600 dark:text-pink-400" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              ${stats.totalValue.toFixed(0)}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <div className="flex-1 relative">
-            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:max-w-xl md:ml-8">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search products, services, SKUs..."
+              placeholder="Search catalog..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-gray-700 border-none rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400"
             />
           </div>
 
-          <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-1">
-            {(['all', 'product', 'service', 'bundle'] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setFilterType(type)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${filterType === type
-                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                  }`}
-              >
-                {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center space-x-1 bg-gray-50 dark:bg-gray-700 rounded-lg p-1">
+          <div className="flex p-1 bg-slate-100 dark:bg-gray-700 rounded-lg h-[36px]">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-md transition-colors ${viewMode === 'grid'
-                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
+              className={`px-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Grid size={18} />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-md transition-colors ${viewMode === 'list'
-                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
+              className={`px-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <List size={18} />
             </button>
           </div>
-
-          <button className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <Filter size={18} className="text-gray-600 dark:text-gray-400" />
-          </button>
         </div>
-      </Card>
+      </div>
 
       <div className="flex-1 overflow-y-auto">
         {filteredProducts.length === 0 ? (
@@ -317,101 +337,161 @@ export default function Products() {
             ))}
           </div>
         ) : (
-          <Card className="overflow-hidden p-0">
-            <table className="w-full">
-              <thead className={theme === 'soft-modern' ? "bg-base border-b border-default" : "bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700"}>
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    Price
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    Stock
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg flex items-center justify-center mr-3">
-                          <Package size={20} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
-                          {product.sku && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{product.sku}</p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${product.product_type === 'service'
-                        ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400'
-                        : product.product_type === 'bundle'
-                          ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400'
-                          : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
-                        }`}>
-                        {product.product_type.charAt(0).toUpperCase() + product.product_type.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                      {product.category || '-'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        ${product.price.toFixed(2)}
-                      </p>
-                      {product.pricing_model === 'recurring' && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          /{product.recurring_interval}
-                        </p>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                      {product.track_inventory ? `${product.quantity_on_hand} units` : '-'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${product.is_active
-                        ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
-                        : 'bg-gray-100 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400'
-                        }`}>
-                        {product.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors group"
-                        >
-                          <Trash2 size={16} className="text-gray-400 group-hover:text-red-600 transition-colors" />
-                        </button>
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-                          <MoreVertical size={18} className="text-gray-600 dark:text-gray-400" />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <Card className="hidden md:block overflow-hidden p-0">
+              <table className="w-full">
+                <thead className={theme === 'soft-modern' ? "bg-base border-b border-default" : "bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700"}>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Product
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Price
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Stock
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredProducts.map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg flex items-center justify-center mr-3">
+                            <Package size={20} className="text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
+                            {product.sku && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{product.sku}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${product.product_type === 'service'
+                          ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400'
+                          : product.product_type === 'bundle'
+                            ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400'
+                            : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                          }`}>
+                          {product.product_type.charAt(0).toUpperCase() + product.product_type.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                        {product.category || '-'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          ${product.price.toFixed(2)}
+                        </p>
+                        {product.pricing_model === 'recurring' && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            /{product.recurring_interval}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                        {product.track_inventory ? `${product.quantity_on_hand} units` : '-'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${product.is_active
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
+                          : 'bg-gray-100 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400'
+                          }`}>
+                          {product.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button
+                            onClick={() => handleDelete(product.id)}
+                            className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors group"
+                          >
+                            <Trash2 size={16} className="text-gray-400 group-hover:text-red-600 transition-colors" />
+                          </button>
+                          <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                            <MoreVertical size={18} className="text-gray-600 dark:text-gray-400" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
+
+            {/* Mobile Card View (List Mode) */}
+            <div className="md:hidden space-y-4 pb-20">
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mr-3">
+                        <Package size={20} className="text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 dark:text-white line-clamp-1">{product.name}</h3>
+                        <p className="text-[10px] text-gray-500 font-mono">{product.sku || 'NO-SKU'}</p>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-1 text-[10px] font-bold uppercase rounded-full ${product.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                      {product.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2 border-t border-b border-gray-50 dark:border-gray-700 mb-3">
+                    <div className="text-center flex-1 border-r border-gray-50 dark:border-gray-700">
+                      <p className="text-[10px] text-gray-500 uppercase">Price</p>
+                      <p className="font-bold text-gray-900 dark:text-white">${product.price.toFixed(2)}</p>
+                    </div>
+                    <div className="text-center flex-1 border-r border-gray-50 dark:border-gray-700">
+                      <p className="text-[10px] text-gray-500 uppercase">Type</p>
+                      <p className="font-bold text-gray-900 dark:text-white text-xs capitalize">{product.product_type}</p>
+                    </div>
+                    <div className="text-center flex-1">
+                      <p className="text-[10px] text-gray-500 uppercase">Stock</p>
+                      <p className="font-bold text-gray-900 dark:text-white">{product.track_inventory ? product.quantity_on_hand : '—'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Link
+                      to={`/products/${product.id}`}
+                      className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-center text-xs font-bold"
+                    >
+                      View Details
+                    </Link>
+                    {(currentMembership?.role === 'owner' || currentMembership?.role === 'admin') && (
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        className="p-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-red-500"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </PageContainer>

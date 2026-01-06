@@ -5,7 +5,7 @@ import { useQuoteStore } from '@/stores/quoteStore';
 import { useInvoiceStore } from '@/stores/invoiceStore';
 import { useCustomerStore } from '@/stores/customerStore';
 import {
-  Plus, Search, Filter, FileText, DollarSign, TrendingUp, ArrowRight,
+  Plus, Search, FileText, DollarSign, TrendingUp,
   LayoutGrid, List, Columns, ArrowUpDown, MoreVertical, Send, Mouse
 } from 'lucide-react';
 import { Card } from '@/components/theme/ThemeComponents';
@@ -276,7 +276,7 @@ const Pipeline: React.FC = () => {
             <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
               <button
                 onClick={() => setViewMode('kanban')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${viewMode === 'kanban'
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${viewMode === 'kanban' || window.innerWidth < 768
                   ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
@@ -286,7 +286,7 @@ const Pipeline: React.FC = () => {
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${viewMode === 'table'
+                className={`hidden md:flex px-3 py-2 rounded-lg text-sm font-medium transition-all items-center gap-2 ${viewMode === 'table'
                   ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
@@ -296,7 +296,7 @@ const Pipeline: React.FC = () => {
               </button>
               <button
                 onClick={() => setViewMode('split')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${viewMode === 'split'
+                className={`hidden md:flex px-3 py-2 rounded-lg text-sm font-medium transition-all items-center gap-2 ${viewMode === 'split'
                   ? 'bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}

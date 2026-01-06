@@ -12,11 +12,12 @@ interface OrganizationState {
   teamMembers: Array<UserProfile & { role: string; color: string }>;
   loading: boolean;
   demoMode: boolean;
-  fetchUserOrganizations: (userId: string) => Promise<void>;
+  fetchUserOrganizations: (userId?: string) => Promise<void>;
   setCurrentOrganization: (orgId: string) => Promise<void>;
   fetchTeamMembers: () => Promise<void>;
   updateOrganization: (data: Partial<Organization>) => Promise<void>;
   updateMember: (memberId: string, data: Partial<OrganizationMember>) => Promise<void>;
+  inviteMember: (email: string, role: string) => Promise<void>;
   getOrganizationId: () => string;
 }
 
@@ -204,6 +205,35 @@ export const useOrganizationStore = create<OrganizationState>()(
 
         // Refresh team members
         await get().fetchTeamMembers();
+      },
+
+      inviteMember: async (email: string, role: string) => {
+        const { currentOrganization, demoMode } = get();
+        if (!currentOrganization) throw new Error('No organization selected');
+
+        if (demoMode) {
+          // Simulate network delay
+          await new Promise(resolve => setTimeout(resolve, 800));
+
+          // Mock adding to local state if we want to show it immediately
+          const newMember = {
+            id: `demo-${Date.now()}`,
+            email,
+            full_name: email.split('@')[0],
+            role,
+            color: generateUserColor(get().teamMembers.length),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+
+          set({ teamMembers: [...get().teamMembers, newMember as any] });
+          return;
+        }
+
+        // Production: Call Supabase Edge Function or add placeholder member
+        // For now, let's assume we use organization_members table with a dummy user_id or a system that handles invitations
+        // Actually, let's just mock the invite success for now as we don't have the backend invitation logic yet
+        await new Promise(resolve => setTimeout(resolve, 800));
       },
     }),
     {

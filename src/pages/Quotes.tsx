@@ -2,13 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search, Plus, Filter, FileText, DollarSign,
-  TrendingUp, Clock, MoreVertical,
-  CheckCircle, Archive, CheckCircle2, Trash2
+  Clock, MoreVertical,
+  Archive, CheckCircle2, Trash2,
+  ArrowRight, Target, Zap
 } from 'lucide-react';
 import { useQuoteStore } from '../stores/quoteStore';
 import { useOrganizationStore } from '../stores/organizationStore';
 import { useThemeStore } from '../stores/themeStore';
-import { PageContainer, Card } from '../components/theme/ThemeComponents';
+import { PageContainer, Card, IconBadge } from '../components/theme/ThemeComponents';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import type { QuoteStatus } from '../types/app.types';
@@ -21,7 +22,7 @@ export default function Quotes() {
   const [selectAll, setSelectAll] = useState(false);
 
   const { quotes, loading, fetchQuotes, deleteQuote } = useQuoteStore();
-  const { currentOrganization, demoMode, getOrganizationId } = useOrganizationStore();
+  const { currentOrganization, demoMode, getOrganizationId, currentMembership } = useOrganizationStore();
   const { theme } = useThemeStore();
 
   useEffect(() => {
@@ -106,6 +107,10 @@ export default function Quotes() {
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    if (currentMembership?.role !== 'owner' && currentMembership?.role !== 'admin') {
+      toast.error('You do not have permission to delete quotes');
+      return;
+    }
     if (!confirm('Are you sure you want to delete this quote?')) return;
     try {
       await deleteQuote(id);
@@ -147,96 +152,112 @@ export default function Quotes() {
   }
 
   return (
-    <PageContainer className="gap-6">
-      <Card className="border-0">
-        <div className="flex items-center justify-between mb-6">
+    <PageContainer className="gap-4">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Sales Quotes
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Draft proposals, track customer interest, and convert leads
+          </p>
+        </div>
+        <Link
+          to="/quotes/builder"
+          className="flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium shadow-sm active:scale-95"
+        >
+          <Plus size={18} className="mr-2" />
+          Create Quote
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card hover className="flex items-center gap-4 p-4 group h-28">
+          <IconBadge
+            icon={<DollarSign size={20} className="text-blue-600" />}
+            gradient="bg-blue-50"
+            size="md"
+          />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Quotes
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Create and manage customer quotes
-            </p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Pipeline Value</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">${(stats.totalValue / 1000).toFixed(1)}k</h3>
           </div>
-          <Link
-            to="/quotes/builder"
-            className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium shadow-sm"
-          >
-            <Plus size={20} className="mr-2" />
-            New Quote
-          </Link>
+          <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+        </Card>
+
+        <Card hover className="flex items-center gap-4 p-4 group h-28">
+          <IconBadge
+            icon={<Clock size={20} className="text-amber-600" />}
+            gradient="bg-amber-50"
+            size="md"
+          />
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Pending</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stats.sentCount}</h3>
+          </div>
+          <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+        </Card>
+
+        <Card hover className="flex items-center gap-4 p-4 group h-28">
+          <IconBadge
+            icon={<Target size={20} className="text-emerald-600" />}
+            gradient="bg-emerald-50"
+            size="md"
+          />
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Accepted</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stats.acceptedCount}</h3>
+          </div>
+          <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+        </Card>
+
+        <Card hover className="flex items-center gap-4 p-4 group h-28">
+          <IconBadge
+            icon={<Zap size={20} className="text-purple-600" />}
+            gradient="bg-purple-50"
+            size="md"
+          />
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Win Rate</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stats.conversionRate.toFixed(0)}%</h3>
+          </div>
+          <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+        </Card>
+      </div>
+
+      <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4 bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-gray-700">
+        <div className="flex bg-slate-100 dark:bg-gray-700 p-1 rounded-lg overflow-x-auto scrollbar-hide">
+          {(['all', 'draft', 'sent', 'accepted', 'declined'] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wide transition-all whitespace-nowrap ${filterStatus === status
+                ? 'bg-white dark:bg-gray-800 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+                }`}
+            >
+              {status}
+            </button>
+          ))}
         </div>
 
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className={theme === 'soft-modern' ? "card p-4" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Total Value</span>
-              <DollarSign size={18} className="text-green-600 dark:text-green-400" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              ${stats.totalValue.toLocaleString()}
-            </p>
-          </div>
-
-          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Pending</span>
-              <Clock size={18} className="text-blue-600 dark:text-blue-400" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.sentCount}</p>
-          </div>
-
-          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Accepted</span>
-              <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.acceptedCount}</p>
-          </div>
-
-          <div className={theme === 'soft-modern' ? "rounded-xl p-4 bg-white shadow-[4px_4px_8px_rgba(0,0,0,0.04),-2px_-2px_6px_rgba(255,255,255,0.9)]" : "bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Conversion Rate</span>
-              <TrendingUp size={18} className="text-purple-600 dark:text-purple-400" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {stats.conversionRate.toFixed(0)}%
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <div className="flex-1 relative">
-            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:max-w-xl md:ml-8">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search quotes by number, customer..."
+              placeholder="Search quotes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-gray-700 border-none rounded-lg text-sm font-medium focus:ring-2 focus:ring-emerald-500 transition-all placeholder:text-slate-400"
             />
           </div>
 
-          <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-1">
-            {(['all', 'draft', 'sent', 'accepted', 'declined'] as const).map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilterStatus(status)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${filterStatus === status
-                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                  }`}
-              >
-                {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          <button className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <Filter size={18} className="text-gray-600 dark:text-gray-400" />
+          <button className="p-2 bg-slate-100 dark:bg-gray-700 rounded-lg text-slate-500 hover:text-slate-700 transition-all">
+            <Filter size={18} />
           </button>
         </div>
-      </Card>
+      </div>
 
       <div className="flex-1 overflow-y-auto">
         {filteredQuotes.length === 0 ? (
@@ -263,118 +284,174 @@ export default function Quotes() {
             )}
           </div>
         ) : (
-          <Card className="overflow-hidden p-0">
-            <table className="w-full">
-              <thead className={theme === 'soft-modern' ? "bg-base border-b border-default" : "bg-slate-50 dark:bg-gray-700 border-b-2 border-slate-100 dark:border-gray-600"}>
-                <tr>
-                  <th className="w-12 px-4 py-4 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectAll}
-                      onChange={handleSelectAll}
-                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                    />
-                  </th>
-                  <th className="w-16 text-center px-4 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    #
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Quote #
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Customer
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Date
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Amount
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-gray-700">
-                {filteredQuotes.map((quote, index) => (
-                  <tr
-                    key={quote.id}
-                    onClick={() => navigate(`/quotes/${quote.id}`)}
-                    className="hover:bg-slate-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer border-b border-slate-100 dark:border-gray-700"
-                  >
-                    <td className="px-4 py-4">
+          <>
+            {/* Desktop Table View */}
+            <Card className="hidden md:block overflow-hidden p-0">
+              <table className="w-full">
+                <thead className={theme === 'soft-modern' ? "bg-base border-b border-default" : "bg-slate-50 dark:bg-gray-700 border-b-2 border-slate-100 dark:border-gray-600"}>
+                  <tr>
+                    <th className="w-12 px-4 py-4 text-left">
                       <input
                         type="checkbox"
-                        checked={selectedQuotes.has(quote.id)}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          handleSelectQuote(quote.id);
-                        }}
-                        onClick={(e) => e.stopPropagation()}
+                        checked={selectAll}
+                        onChange={handleSelectAll}
                         className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                       />
-                    </td>
-                    <td className="text-center px-4 py-4">
-                      <span className="text-sm font-medium text-slate-400">
-                        {index + 1}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg flex items-center justify-center mr-3">
-                          <FileText size={20} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{quote.quote_number}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">v{quote.version}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900 dark:text-white">{quote.customer_name}</p>
-                      {quote.customer_email && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{quote.customer_email}</p>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                      {format(new Date(quote.quote_date), 'MMM dd, yyyy')}
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        ${quote.total_amount.toLocaleString()}
-                      </p>
-                      {quote.subtotal !== quote.total_amount && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          ${quote.subtotal.toLocaleString()} + tax
-                        </p>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1.5 text-xs rounded-lg font-semibold border ${getStatusColor(quote.status)}`}>
-                        {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end space-x-2">
-                        <button
-                          onClick={(e) => handleDelete(e, quote.id)}
-                          className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors group"
-                        >
-                          <Trash2 size={16} className="text-gray-400 group-hover:text-red-600 transition-colors" />
-                        </button>
-                        <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
-                          <MoreVertical size={16} className="text-gray-600 dark:text-gray-400" />
-                        </button>
-                      </div>
-                    </td>
+                    </th>
+                    <th className="w-16 text-center px-4 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      #
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      Quote #
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      Customer
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      Date
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      Amount
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-gray-700">
+                  {filteredQuotes.map((quote, index) => (
+                    <tr
+                      key={quote.id}
+                      onClick={() => navigate(`/quotes/${quote.id}`)}
+                      className="hover:bg-slate-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer border-b border-slate-100 dark:border-gray-700"
+                    >
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedQuotes.has(quote.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleSelectQuote(quote.id);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </td>
+                      <td className="text-center px-4 py-4">
+                        <span className="text-sm font-medium text-slate-400">
+                          {index + 1}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg flex items-center justify-center mr-3">
+                            <FileText size={20} className="text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{quote.quote_number}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">v{quote.version}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-gray-900 dark:text-white">{quote.customer_name}</p>
+                        {quote.customer_email && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{quote.customer_email}</p>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                        {format(new Date(quote.quote_date), 'MMM dd, yyyy')}
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          ${quote.total_amount.toLocaleString()}
+                        </p>
+                        {quote.subtotal !== quote.total_amount && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            ${quote.subtotal.toLocaleString()} + tax
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1.5 text-xs rounded-lg font-semibold border ${getStatusColor(quote.status)}`}>
+                          {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end space-x-2">
+                          {(currentMembership?.role === 'owner' || currentMembership?.role === 'admin') && (
+                            <button
+                              onClick={(e) => handleDelete(e, quote.id)}
+                              className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors group"
+                            >
+                              <Trash2 size={16} className="text-gray-400 group-hover:text-red-600 transition-colors" />
+                            </button>
+                          )}
+                          <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
+                            <MoreVertical size={16} className="text-gray-600 dark:text-gray-400" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4 pb-20">
+              {filteredQuotes.map((quote) => (
+                <div
+                  key={quote.id}
+                  onClick={() => navigate(`/quotes/${quote.id}`)}
+                  className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm active:scale-[0.98] transition-all"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mr-3">
+                        <FileText size={20} className="text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 dark:text-white">{quote.quote_number}</h3>
+                        <p className="text-xs text-gray-500">v{quote.version}</p>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-1 text-[10px] font-bold uppercase rounded border ${getStatusColor(quote.status)}`}>
+                      {quote.status}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 mb-4">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{quote.customer_name}</p>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">{format(new Date(quote.quote_date), 'MMM dd, yyyy')}</span>
+                      <span className="font-bold text-lg text-gray-900 dark:text-white">${quote.total_amount.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-50 dark:border-gray-700">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); navigate(`/quotes/${quote.id}`); }}
+                      className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold"
+                    >
+                      View Details
+                    </button>
+                    {(currentMembership?.role === 'owner' || currentMembership?.role === 'admin') && (
+                      <button
+                        onClick={(e) => handleDelete(e, quote.id)}
+                        className="p-2 text-gray-400 hover:text-red-600"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

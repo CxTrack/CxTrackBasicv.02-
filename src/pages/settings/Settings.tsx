@@ -3,27 +3,67 @@ import { useOrganizationStore } from '@/stores/organizationStore';
 import { useThemeStore, Theme } from '@/stores/themeStore';
 import { settingsService, BusinessSettings as BusinessSettingsType, DocumentTemplate } from '@/services/settings.service';
 import { supabase } from '@/lib/supabase';
-import { Building2, FileText, CreditCard, Calendar as CalendarIcon, Share2, Check, Loader2, Upload, Save, Palette, Sun, Moon, Plus, Edit, Trash2, Eye, Download, Zap, Bell, Users } from 'lucide-react';
+import { Building2, FileText, CreditCard, Calendar as CalendarIcon, Share2, Check, Loader2, Upload, Save, Palette, Sun, Moon, Plus, Edit, Trash2, Eye, Download, Zap, Users, UserPlus, TrendingUp, CheckCircle, Link, Copy, Code, Key, Info, MoreVertical, Smartphone, Package, DollarSign, Phone, CheckSquare, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { Card } from '@/components/theme/ThemeComponents';
 import CalendarSettings from './CalendarSettings';
-import SharingSettings from './SharingSettings';
+import { InviteMemberModal } from '@/components/settings/InviteMemberModal';
+
+import { usePreferencesStore } from '@/stores/preferencesStore';
 import toast from 'react-hot-toast';
 
 export default function Settings() {
-  const { currentOrganization, fetchUserOrganizations } = useOrganizationStore();
+  const { currentOrganization, teamMembers, updateMember, fetchUserOrganizations } = useOrganizationStore();
   const { theme, setTheme } = useThemeStore();
+  const { preferences, saveMobileNavItems } = usePreferencesStore();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'appearance' | 'business' | 'billing' | 'templates' | 'payment' | 'calendar' | 'sharing'>('appearance');
+  const [activeTab, setActiveTab] = useState<'appearance' | 'mobile' | 'business' | 'billing' | 'templates' | 'payment' | 'calendar' | 'sharing'>('appearance');
   const [settings, setSettings] = useState<BusinessSettingsType | null>(null);
   const [quoteTemplates, setQuoteTemplates] = useState<DocumentTemplate[]>([]);
   const [invoiceTemplates, setInvoiceTemplates] = useState<DocumentTemplate[]>([]);
   const [devOrgId, setDevOrgId] = useState<string | null>(null);
   const [devOrgName, setDevOrgName] = useState<string>('');
+  const [showInviteModal, setShowInviteModal] = useState(false);
+
+  const handleRoleChange = async (memberId: string, newRole: string) => {
+    try {
+      await updateMember(memberId, { role: newRole as any });
+      toast.success('Member role updated');
+    } catch (error) {
+      console.error('Failed to update member role:', error);
+      toast.error('Failed to update member role');
+    }
+  };
+
+  const updateSharingSettings = async (key: string, value: boolean) => {
+    if (!currentOrganization) return;
+
+    // Use metadata to store sharing toggles
+    const currentSharing = currentOrganization.metadata?.sharing || {};
+    const newMetadata = {
+      ...currentOrganization.metadata,
+      sharing: {
+        ...currentSharing,
+        [key]: value
+      }
+    };
+
+    try {
+      await useOrganizationStore.getState().updateOrganization({ metadata: newMetadata });
+      toast.success('Sharing setting updated');
+    } catch (error) {
+      console.error('Failed to update sharing setting:', error);
+      toast.error('Failed to update sharing setting');
+    }
+  };
+
+  const isModuleShared = (key: string) => {
+    return currentOrganization?.metadata?.sharing?.[key] ?? true;
+  };
 
   useEffect(() => {
     const initSettings = async () => {
@@ -118,7 +158,6 @@ export default function Settings() {
         }
       }
     };
-
     initSettings();
   }, [currentOrganization]);
 
@@ -169,17 +208,10 @@ export default function Settings() {
       console.log('State:', settings.business_state);
       console.log('Calling updateBusinessSettings with orgId:', orgId);
 
-      const { data: beforeUpdate, error: beforeError } = await supabase
-        .from('organizations')
-        .select('business_city, business_state')
-        .eq('id', orgId)
-        .single();
-      console.log('DB BEFORE update:', beforeUpdate);
-
       await settingsService.updateBusinessSettings(orgId, settings);
       console.log('Update call completed');
 
-      const { data: afterUpdate, error: afterError } = await supabase
+      const { data: afterUpdate } = await supabase
         .from('organizations')
         .select('business_city, business_state')
         .eq('id', orgId)
@@ -317,9 +349,10 @@ export default function Settings() {
             </Button>
           </div>
 
-          <div className="flex gap-2 mt-6 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex flex-wrap gap-2 mt-6">
             {[
               { id: 'appearance', label: 'Appearance', icon: Palette },
+              { id: 'mobile', label: 'Mobile Nav', icon: Smartphone, mobileOnly: true },
               { id: 'business', label: 'Business Info', icon: Building2 },
               { id: 'billing', label: 'Billing & Plans', icon: CreditCard },
               { id: 'templates', label: 'Templates', icon: FileText },
@@ -331,8 +364,8 @@ export default function Settings() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${activeTab === tab.id
-                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                  : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700'
+                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                  : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700 border border-transparent'
                   }`}
               >
                 <tab.icon className="w-4 h-4 mr-2" />
@@ -416,6 +449,99 @@ export default function Settings() {
                     </button>
                   );
                 })}
+              </div>
+            </Card>
+          </div>
+        )}
+        {activeTab === 'mobile' && (
+          <div className="max-w-4xl space-y-6">
+            <Card>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Mobile Quick Access</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 font-medium">
+                Customize your mobile bottom navigation. Select your top 3 most used features for quick access. (Home and More are always included).
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { path: '/customers', label: 'Customers', icon: Users },
+                  { path: '/calendar', label: 'Calendar', icon: CalendarIcon },
+                  { path: '/products', label: 'Products', icon: Package },
+                  { path: '/quotes', label: 'Quotes', icon: FileText },
+                  { path: '/invoices', label: 'Invoices', icon: DollarSign },
+                  { path: '/calls', label: 'Calls', icon: Phone },
+                  { path: '/pipeline', label: 'Pipeline', icon: TrendingUp },
+                  { path: '/tasks', label: 'Tasks', icon: CheckSquare },
+                ].map((option) => {
+                  const selectedItems = preferences.mobileNavItems || [];
+                  const isSelected = selectedItems.includes(option.path);
+                  const isMaxReached = selectedItems.length >= 3 && !isSelected;
+
+                  return (
+                    <button
+                      key={option.path}
+                      disabled={isMaxReached}
+                      onClick={() => {
+                        if (isSelected) {
+                          saveMobileNavItems(selectedItems.filter(p => p !== option.path));
+                        } else if (selectedItems.length < 3) {
+                          saveMobileNavItems([...selectedItems, option.path]);
+                        }
+                      }}
+                      className={`flex items-center p-4 rounded-2xl border-2 transition-all text-left group ${isSelected
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                        : isMaxReached
+                          ? 'opacity-40 cursor-not-allowed border-gray-100 dark:border-gray-800'
+                          : 'border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 active:scale-95'
+                        }`}
+                    >
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 shadow-sm transition-colors ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:text-gray-600'
+                        }`}>
+                        <option.icon size={22} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900 dark:text-white leading-tight">{option.label}</p>
+                        {isSelected ? (
+                          <div className="flex items-center text-[10px] text-blue-600 mt-0.5 font-bold uppercase tracking-wider">
+                            <Check size={10} className="mr-1" />
+                            Selected
+                          </div>
+                        ) : (
+                          <p className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider font-semibold">Available</p>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-8 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <p className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center">
+                  <Smartphone size={16} className="mr-2 text-blue-600" />
+                  Bottom Bar Preview
+                </p>
+                <div className="flex justify-around items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-inner border border-slate-200 dark:border-gray-700 max-w-sm mx-auto">
+                  <div className="flex flex-col items-center opacity-40"><LayoutGrid size={18} /><span className="text-[8px] mt-1 font-bold">Home</span></div>
+                  {(preferences.mobileNavItems || []).map(path => {
+                    const item = [
+                      { path: '/customers', label: 'Customers', icon: Users },
+                      { path: '/calendar', label: 'Calendar', icon: CalendarIcon },
+                      { path: '/products', label: 'Products', icon: Package },
+                      { path: '/quotes', label: 'Quotes', icon: FileText },
+                      { path: '/invoices', label: 'Invoices', icon: DollarSign },
+                      { path: '/calls', label: 'Calls', icon: Phone },
+                      { path: '/pipeline', label: 'Pipeline', icon: TrendingUp },
+                      { path: '/tasks', label: 'Tasks', icon: CheckSquare },
+                    ].find(o => o.path === path);
+                    if (!item) return null;
+                    return (
+                      <div key={path} className="flex flex-col items-center text-blue-600">
+                        <item.icon size={18} />
+                        <span className="text-[8px] mt-1 font-bold">{item.label}</span>
+                      </div>
+                    );
+                  })}
+                  <div className="flex flex-col items-center opacity-40"><MoreVertical size={18} /><span className="text-[8px] mt-1 font-bold">More</span></div>
+                </div>
               </div>
             </Card>
           </div>
@@ -1152,11 +1278,376 @@ export default function Settings() {
         )}
 
         {activeTab === 'sharing' && (
-          <div className="max-w-4xl">
-            <SharingSettings />
+          <div className="space-y-6">
+
+            {/* Team Members with Access */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Team Members
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Manage who has access to your CRM data
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowInviteModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium text-sm flex items-center gap-2 transition-colors"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Invite Member
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {teamMembers.length > 0 ? (
+                  teamMembers.map((member) => (
+                    <div key={member.id} className={`flex items-center justify-between p-4 border-2 ${member.role === 'owner' ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'} rounded-xl transition-all`}>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg overflow-hidden" style={{ backgroundColor: member.color || '#6366f1' }}>
+                          {member.avatar_url ? (
+                            <img src={member.avatar_url} alt={member.full_name || ''} className="w-full h-full object-cover" />
+                          ) : (
+                            (member.full_name || member.email).split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-semibold text-gray-900 dark:text-white">
+                              {member.full_name || 'Unnamed User'}
+                            </p>
+                            <span className={`px-2 py-0.5 text-xs font-semibold rounded ${member.role === 'owner' ? 'bg-blue-600 text-white' :
+                              member.role === 'admin' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                                'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                              }`}>
+                              {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {member.email}
+                          </p>
+                        </div>
+                      </div>
+                      {member.role !== 'owner' ? (
+                        <div className="flex items-center gap-3">
+                          <select
+                            value={member.role}
+                            onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                            className="px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                          >
+                            <option value="admin">Admin</option>
+                            <option value="manager">Manager</option>
+                            <option value="user">User</option>
+                          </select>
+                          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                            <MoreVertical className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                          Full Access
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="w-12 h-12 text-gray-400 mx-auto mb-3 opacity-20" />
+                    <p className="text-gray-500">No team members found</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Shared Resources */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Shared Resources
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Control what team members can access
+                </p>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {/* Customers Sharing */}
+                <div className="flex items-center justify-between p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                      <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                        Customer Database
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        All team members can view and edit customer records
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={isModuleShared('customers')}
+                      onChange={(e) => updateSharingSettings('customers', e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+
+                {/* Calendar Sharing */}
+                <div className="flex items-center justify-between p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+                      <CalendarIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                        Shared Calendar
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Team can see all appointments and meetings
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={isModuleShared('calendar')}
+                      onChange={(e) => updateSharingSettings('calendar', e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+
+                {/* Pipeline Sharing */}
+                <div className="flex items-center justify-between p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
+                      <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                        Sales Pipeline
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Collaborative deal tracking and revenue visibility
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={isModuleShared('pipeline')}
+                      onChange={(e) => updateSharingSettings('pipeline', e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+
+                {/* Tasks Sharing */}
+                <div className="flex items-center justify-between p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                        Task Management
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Assign and track tasks across the team
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={isModuleShared('tasks')}
+                      onChange={(e) => updateSharingSettings('tasks', e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* External Sharing & Integrations */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  External Sharing
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Share data with external tools and platforms
+                </p>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {/* Public Link Sharing */}
+                <div className="p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-900/50">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                        <Link className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                          Public Booking Link
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Share this link for customers to book appointments
+                        </p>
+                      </div>
+                    </div>
+                    <button className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 font-medium transition-colors">
+                      Generate Link
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <input
+                      type="text"
+                      value="https://cxtrack.com/book/manik-sharma"
+                      readOnly
+                      className="flex-1 bg-transparent text-sm text-gray-900 dark:text-white outline-none"
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText("https://cxtrack.com/book/manik-sharma");
+                        toast.success("Link copied to clipboard");
+                      }}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                      <Copy className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Zapier Integration */}
+                <div className="flex items-center justify-between p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                        Zapier Integration
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Connect CxTrack to 5,000+ apps
+                      </p>
+                    </div>
+                  </div>
+                  <button className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-medium text-sm transition-colors">
+                    Connect
+                  </button>
+                </div>
+
+                {/* Webhook URL */}
+                <div className="p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-900/50">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                        <Code className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                          Webhook URL
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Receive real-time CRM events
+                        </p>
+                      </div>
+                    </div>
+                    <button className="px-3 py-1.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors">
+                      Configure
+                    </button>
+                  </div>
+                </div>
+
+                {/* API Access */}
+                <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50/30 dark:bg-gray-900/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                        <Key className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                          API Keys
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Generate API keys for custom integrations
+                        </p>
+                      </div>
+                    </div>
+                    <button className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl hover:bg-gray-800 dark:hover:bg-gray-100 font-medium text-sm transition-colors">
+                      Manage Keys
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Permission Levels Info */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl border-2 border-blue-200 dark:border-blue-800 p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Info className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-3">
+                    Permission Levels
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                    <div className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <strong>Owner:</strong> Full control including billing and team management
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <strong>Admin:</strong> Manage all CRM data and settings except billing
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <strong>Full Access:</strong> Create, edit, and delete all records
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <strong>Can Edit:</strong> View and edit existing records
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-gray-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <strong>Can View:</strong> Read-only access to CRM data
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         )}
       </div>
+      <InviteMemberModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+      />
     </div>
   );
 }

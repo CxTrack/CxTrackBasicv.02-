@@ -157,6 +157,19 @@ export interface Call {
   metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
+  // Extended fields used in the app
+  call_type?: 'human' | 'ai_agent';
+  agent_id?: string | null;
+  agent_type?: string | null;
+  agent_name?: string | null;
+  outcome?: string | null;
+  customer_phone?: string | null;
+  customers?: {
+    first_name?: string | null;
+    last_name?: string | null;
+    name?: string | null;
+    company?: string | null;
+  } | null;
 }
 
 export interface CustomerContact {

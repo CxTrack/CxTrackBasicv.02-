@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Users, Calendar, FileText, DollarSign, TrendingUp,
   UserPlus, CalendarPlus, FilePlus, Phone,
-  ArrowRight, Activity, Package, GripVertical, CheckCircle, User, Flag,
-  ArrowUpRight, Clock, Zap, ChevronRight, Plus
+  ArrowRight, Activity, Package, GripVertical, CheckCircle, User,
+  ArrowUpRight, Clock, ChevronRight, Plus
 } from 'lucide-react';
 import {
   DndContext,
@@ -38,8 +38,8 @@ import CustomerModal from '@/components/customers/CustomerModal';
 import EventModal from '@/components/calendar/EventModal';
 import TaskModal from '@/components/tasks/TaskModal';
 import { useTaskStore, Task } from '@/stores/taskStore';
+import { usePreferencesStore } from '@/stores/preferencesStore';
 import { Card, NestedCard, Button } from '@/components/theme/ThemeComponents';
-import toast from 'react-hot-toast';
 
 type ActivityFilter = 'all' | 'appointments' | 'quotes' | 'invoices' | 'products' | 'customers' | 'tasks';
 
@@ -116,8 +116,9 @@ export const Dashboard: React.FC = () => {
   const { invoices, fetchInvoices } = useInvoiceStore();
   const { products, fetchProducts } = useProductStore();
   const { tasks, fetchTasks, getPendingTasks, getOverdueTasks } = useTaskStore();
-  const { pipelineStats, fetchPipelineStats } = useDealStore();
+  const { fetchPipelineStats } = useDealStore();
   const { currentOrganization } = useOrganizationStore();
+  const { preferences, saveQuickActionsOrder } = usePreferencesStore();
 
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
@@ -132,6 +133,14 @@ export const Dashboard: React.FC = () => {
     weightedPipeline: 0,
     openDealsCount: 0,
   });
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleAddCustomer = () => setShowCustomerModal(true);
   const handleSchedule = () => setShowEventModal(true);
@@ -229,7 +238,8 @@ export const Dashboard: React.FC = () => {
 
         const newOrder = arrayMove(actions, oldIndex, newIndex);
 
-        localStorage.setItem('quickActionsOrder', JSON.stringify(newOrder.map(a => a.id)));
+        // Save to Supabase via store
+        saveQuickActionsOrder(newOrder.map(a => a.id));
 
         return newOrder;
       });
@@ -237,65 +247,61 @@ export const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    const savedOrder = localStorage.getItem('quickActionsOrder');
-    if (savedOrder) {
-      try {
-        const orderIds = JSON.parse(savedOrder);
-        const defaultActions = [
-          {
-            id: 'add-customer',
-            label: 'Add Customer',
-            icon: UserPlus,
-            onClick: handleAddCustomer,
-            bgColor: 'bg-primary-100 dark:bg-primary-500/20',
-            iconColor: 'text-primary-600 dark:text-white',
-          },
-          {
-            id: 'schedule',
-            label: 'Schedule',
-            icon: CalendarPlus,
-            onClick: handleSchedule,
-            bgColor: 'bg-primary-100 dark:bg-primary-500/20',
-            iconColor: 'text-primary-600 dark:text-white',
-          },
-          {
-            id: 'create-quote',
-            label: 'Create Quote',
-            icon: FilePlus,
-            onClick: handleCreateQuote,
-            bgColor: 'bg-primary-100 dark:bg-primary-500/20',
-            iconColor: 'text-primary-600 dark:text-white',
-          },
-          {
-            id: 'new-invoice',
-            label: 'New Invoice',
-            icon: FileText,
-            onClick: handleNewInvoice,
-            bgColor: 'bg-primary-100 dark:bg-primary-500/20',
-            iconColor: 'text-primary-600 dark:text-white',
-          },
-          {
-            id: 'create-task',
-            label: 'Create Task',
-            icon: CheckCircle,
-            onClick: handleCreateTask,
-            bgColor: 'bg-primary-100 dark:bg-primary-500/20',
-            iconColor: 'text-primary-600 dark:text-white',
-          },
-        ];
+    if (preferences.quickActionsOrder && preferences.quickActionsOrder.length > 0) {
+      const defaultActions: QuickAction[] = [
+        {
+          id: 'add-customer',
+          label: 'Add Customer',
+          icon: UserPlus,
+          onClick: handleAddCustomer,
+          bgColor: 'bg-primary-100 dark:bg-primary-500/20',
+          iconColor: 'text-primary-600 dark:text-white',
+        },
+        {
+          id: 'schedule',
+          label: 'Schedule',
+          icon: CalendarPlus,
+          onClick: handleSchedule,
+          bgColor: 'bg-primary-100 dark:bg-primary-500/20',
+          iconColor: 'text-primary-600 dark:text-white',
+        },
+        {
+          id: 'create-quote',
+          label: 'Create Quote',
+          icon: FilePlus,
+          onClick: handleCreateQuote,
+          bgColor: 'bg-primary-100 dark:bg-primary-500/20',
+          iconColor: 'text-primary-600 dark:text-white',
+        },
+        {
+          id: 'new-invoice',
+          label: 'New Invoice',
+          icon: FileText,
+          onClick: handleNewInvoice,
+          bgColor: 'bg-primary-100 dark:bg-primary-500/20',
+          iconColor: 'text-primary-600 dark:text-white',
+        },
+        {
+          id: 'create-task',
+          label: 'Create Task',
+          icon: CheckCircle,
+          onClick: handleCreateTask,
+          bgColor: 'bg-primary-100 dark:bg-primary-500/20',
+          iconColor: 'text-primary-600 dark:text-white',
+        },
+      ];
 
-        const orderedActions = orderIds
-          .map((id: string) => defaultActions.find(a => a.id === id))
-          .filter(Boolean);
+      const orderedActions = preferences.quickActionsOrder
+        .map((id: string) => defaultActions.find(a => a.id === id))
+        .filter((a): a is QuickAction => a !== undefined);
 
-        if (orderedActions.length === defaultActions.length) {
-          setQuickActions(orderedActions);
-        }
-      } catch (error) {
-        console.error('Error loading quick actions order:', error);
-      }
+      // Add any missing default actions
+      const existingIds = new Set(preferences.quickActionsOrder);
+      const missingActions = defaultActions.filter(a => !existingIds.has(a.id));
+
+      setQuickActions([...orderedActions, ...missingActions]);
     }
-  }, []);
+  }, [preferences.quickActionsOrder]);
 
   useEffect(() => {
     fetchCustomers();
@@ -372,7 +378,6 @@ export const Dashboard: React.FC = () => {
 
   const totalCustomers = customers.length;
   const activeCustomers = customers.filter(c => c.status === 'Active').length;
-  const totalRevenue = customers.reduce((sum, c) => sum + (c.total_spent || 0), 0);
   const recentCalls = calls.slice(0, 3);
 
   const upcomingAppointments = calendarEvents
@@ -414,7 +419,7 @@ export const Dashboard: React.FC = () => {
         id: event.id,
         type: 'appointment',
         title: event.title,
-        subtitle: customerName ? `with ${customerName}` : undefined,
+        subtitle: customerName || undefined,
         timestamp: event.created_at,
         icon: Calendar,
         iconBg: 'bg-blue-100 dark:bg-blue-900/30',
@@ -455,7 +460,7 @@ export const Dashboard: React.FC = () => {
         id: customer.id,
         type: 'customer',
         title: `${customer.name} added`,
-        subtitle: customer.email,
+        subtitle: customer.email || undefined,
         timestamp: customer.created_at,
         icon: Users,
         iconBg: 'bg-orange-100 dark:bg-orange-900/30',
@@ -519,8 +524,18 @@ export const Dashboard: React.FC = () => {
     <div className={`min-h-screen ${theme === 'soft-modern' ? 'bg-soft-cream' : 'bg-gray-50 dark:bg-gray-950'}`}>
       <div className="md:hidden">
         <div className="px-4 pt-6 pb-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back!</h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Here's what's happening today</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back!</h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Here's what's happening today</p>
+            </div>
+            <div
+              onClick={() => navigate('/calendar')}
+              className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center shadow-md cursor-pointer active:scale-95 transition-transform"
+            >
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+          </div>
         </div>
 
         <div className="px-4 mb-6">
@@ -579,8 +594,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="px-4 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+        <div className="px-4 mb-4">
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={handleAddCustomer}
@@ -828,28 +842,72 @@ export const Dashboard: React.FC = () => {
                       boxShadow: '4px 4px 8px rgba(0,0,0,0.06), -2px -2px 6px rgba(255,255,255,0.8)'
                     }}
                   >
-                    <div className="flex items-center gap-3">
-                      <Clock size={20} style={{ color: '#6B6B6B' }} />
-                      <div>
-                        <p className="text-sm" style={{ color: '#9CA3AF' }}>Today</p>
-                        <p className="font-semibold" style={{ color: '#2D2D2D' }}>{format(new Date(), 'MMM dd, yyyy')}</p>
+                    <div className="flex items-center gap-3 text-right">
+                      <div className="text-right">
+                        <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: '#9CA3AF' }}>Today</p>
+                        <p className="text-lg font-semibold" style={{ color: '#2D2D2D' }}>
+                          {currentTime.toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </p>
+                        <p className="text-xs font-medium" style={{ color: '#6B6B6B' }}>
+                          {currentTime.toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer hover:bg-[#EAE4DB] transition-colors"
+                        style={{ background: '#F0EBE3' }}
+                        onClick={() => navigate('/calendar')}
+                      >
+                        <Calendar size={20} style={{ color: '#6B6B6B' }} />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="mb-6 lg:mb-8">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  Welcome back, Admin!
-                </h1>
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                  Here's what's happening with your organization today.
-                </p>
+              <div className="flex items-center justify-between mb-6 lg:mb-8">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    Welcome back, Admin!
+                  </h1>
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                    Here's what's happening with your organization today.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
+                      {currentTime.toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      {currentTime.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                  <div
+                    onClick={() => navigate('/calendar')}
+                    className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-transform cursor-pointer group"
+                  >
+                    <Calendar className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
+                  </div>
+                </div>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6">
               <div className={theme === 'soft-modern' ? "card p-6" : "bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm"}>
                 <div className="flex items-center justify-between mb-4">
                   <div className={theme === 'soft-modern' ? "w-12 h-12 rounded-lg icon-container flex items-center justify-center" : "w-12 h-12 bg-blue-100 dark:bg-blue-500/20 rounded-xl flex items-center justify-center"}>
@@ -943,37 +1001,12 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div
-              className={theme === 'soft-modern' ? "rounded-3xl p-6 border border-white/50 mb-6 sm:mb-8" : "mb-6 sm:mb-8"}
+              className={theme === 'soft-modern' ? "rounded-3xl p-4 border border-white/50 mb-4 sm:mb-6" : "mb-4 sm:mb-6"}
               style={theme === 'soft-modern' ? {
                 background: '#F8F6F2',
                 boxShadow: '8px 8px 16px rgba(0,0,0,0.08), -8px -8px 16px rgba(255,255,255,0.9)'
               } : undefined}
             >
-              <div className="flex items-center justify-between mb-4">
-                {theme === 'soft-modern' ? (
-                  <>
-                    <div>
-                      <h2 className="text-xl font-semibold" style={{ color: '#2D2D2D' }}>
-                        Quick Actions
-                      </h2>
-                      <p className="text-sm mt-1" style={{ color: '#6B6B6B' }}>
-                        Frequently used actions
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm" style={{ color: '#9CA3AF' }}>
-                      <Zap size={16} style={{ color: '#E8C9A8' }} />
-                      <span>Drag to reorder</span>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Drag to reorder</p>
-                    </div>
-                  </>
-                )}
-              </div>
 
               <DndContext
                 sensors={sensors}
@@ -1015,7 +1048,7 @@ export const Dashboard: React.FC = () => {
                   {['All', 'Appointments', 'Quotes', 'Invoices', 'Products', 'Customers', 'Tasks'].map((filter) => (
                     <button
                       key={filter}
-                      onClick={() => setActivityFilter(filter.toLowerCase())}
+                      onClick={() => setActivityFilter(filter.toLowerCase() as ActivityFilter)}
                       className={`
                       px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 transition-all
                       ${activityFilter === filter.toLowerCase()

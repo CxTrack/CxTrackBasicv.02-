@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
@@ -27,7 +26,10 @@ import PublicInvoiceView from './pages/share/PublicInvoiceView';
 import CoPilotButton from './components/copilot/CoPilotButton';
 import CoPilotPanel from './components/copilot/CoPilotPanel';
 import ErrorBoundary from './components/ui/ErrorBoundary';
-import { DEMO_MODE } from './config/demo.config';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { CookieConsent } from './components/common/CookieConsent';
+
+import { CallDetail } from './pages/calls/CallDetail';
 
 function App() {
   return (
@@ -57,6 +59,7 @@ function App() {
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="tasks" element={<Tasks />} />
                 <Route path="calls" element={<Calls />} />
+                <Route path="calls/:callId" element={<CallDetail />} />
                 <Route path="pipeline" element={<Pipeline />} />
                 <Route path="products" element={<Products />} />
                 <Route path="products/new" element={<ProductForm />} />
@@ -70,12 +73,14 @@ function App() {
                 <Route path="invoices/builder/:id" element={<InvoiceBuilder />} />
                 <Route path="invoices/:id" element={<InvoiceDetail />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Routes>
 
             <CoPilotButton />
             <CoPilotPanel />
+            <CookieConsent />
           </BrowserRouter>
         </CoPilotProvider>
       </AuthProvider>

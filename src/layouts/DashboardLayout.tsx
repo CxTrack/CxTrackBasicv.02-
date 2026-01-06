@@ -20,12 +20,33 @@ import {
   Package,
   GripVertical,
   TrendingUp,
+  Shield,
 } from 'lucide-react';
+import AdminPanel from '../components/admin/AdminPanel';
+import { supabase } from '../lib/supabase';
 import { useCoPilot } from '../contexts/CoPilotContext';
+import { usePreferencesStore } from '../stores/preferencesStore';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 type NavItem = {
   path: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: any;
   label: string;
 };
 
@@ -43,34 +64,125 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
 const HOME_ITEM: NavItem = { path: '/dashboard', icon: LayoutGrid, label: 'Home' };
 const SETTINGS_ITEM: NavItem = { path: '/settings', icon: Settings, label: 'Settings' };
 
+interface SortableNavItemProps {
+  item: NavItem;
+  isActive: (path: string) => boolean;
+  theme: string;
+}
+
+const SortableNavItem: React.FC<SortableNavItemProps> = ({ item, isActive, theme }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.path });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : 0,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group relative ${isDragging ? 'z-50' : ''}`}
+    >
+      <Link
+        to={item.path}
+        className={
+          theme === 'soft-modern'
+            ? `nav-item flex items-center px-4 py-3 ${isActive(item.path) ? 'active' : ''}`
+            : `flex items-center px-3 py-2 rounded-lg transition-colors ${isActive(item.path)
+              ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
+              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`
+        }
+      >
+        <div {...attributes} {...listeners} className="mr-2 cursor-grab active:cursor-grabbing">
+          <GripVertical
+            size={16}
+            className={theme === 'soft-modern' ? "opacity-0 group-hover:opacity-30 transition-opacity text-tertiary" : "opacity-0 group-hover:opacity-50 transition-opacity"}
+          />
+        </div>
+        <item.icon size={20} className="mr-3" />
+        <span className="font-medium">{item.label}</span>
+      </Link>
+    </div>
+  );
+};
+
 export const DashboardLayout: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [navItems, setNavItems] = useState<NavItem[]>(DEFAULT_NAV_ITEMS);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+
   const { theme, toggleTheme } = useThemeStore();
+  const { preferences, saveSidebarOrder } = usePreferencesStore();
+  const { fetchUserOrganizations, currentOrganization, demoMode } = useOrganizationStore();
+  const location = useLocation();
   const { user } = useAuthContext();
   const { isOpen: isCoPilotOpen, panelSide } = useCoPilot();
-  const { fetchUserOrganizations } = useOrganizationStore();
-  const location = useLocation();
+  const { loadPreferences } = usePreferencesStore();
 
   useEffect(() => {
-    const savedOrder = localStorage.getItem('navItemsOrder');
-    if (savedOrder) {
-      try {
-        const parsedOrder = JSON.parse(savedOrder);
-        const orderedItems = parsedOrder
-          .map((path: string) => DEFAULT_NAV_ITEMS.find(item => item.path === path))
-          .filter(Boolean);
-
-        const allPaths = new Set(parsedOrder);
-        const newItems = DEFAULT_NAV_ITEMS.filter(item => !allPaths.has(item.path));
-
-        setNavItems([...orderedItems, ...newItems]);
-      } catch (e) {
-        console.error('Failed to load nav order:', e);
-      }
+    if (user) {
+      loadPreferences();
     }
-  }, []);
+  }, [user, loadPreferences]);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setIsSuperAdmin(false);
+        return;
+      }
+
+      if (demoMode) {
+        // In demo mode, we'll allow access but show "Dev Mode"
+        setIsSuperAdmin(true);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+        setIsSuperAdmin(data?.role === 'super_admin');
+      } catch (error) {
+        console.error('Failed to check admin status:', error);
+        setIsSuperAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user, demoMode]);
+
+  const isActive = (path: string) => location.pathname === path;
+
+  useEffect(() => {
+    if (preferences.sidebarOrder && preferences.sidebarOrder.length > 0) {
+      const orderedItems = preferences.sidebarOrder
+        .map((path) => DEFAULT_NAV_ITEMS.find(item => item.path === path))
+        .filter((item): item is NavItem => !!item);
+
+      // Add any missing default items
+      const existingPaths = new Set(preferences.sidebarOrder);
+      const missingItems = DEFAULT_NAV_ITEMS.filter(item => !existingPaths.has(item.path));
+
+      setNavItems([...orderedItems, ...missingItems]);
+    }
+  }, [preferences.sidebarOrder]);
 
   useEffect(() => {
     if (user?.id) {
@@ -78,38 +190,69 @@ export const DashboardLayout: React.FC = () => {
     }
   }, [user, fetchUserOrganizations]);
 
-  const saveNavOrder = (items: NavItem[]) => {
-    const order = items.map(item => item.path);
-    localStorage.setItem('navItemsOrder', JSON.stringify(order));
-  };
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
-  const isActive = (path: string) => location.pathname === path;
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
+    const oldIndex = navItems.findIndex(item => item.path === active.id);
+    const newIndex = navItems.findIndex(item => item.path === over.id);
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index) return;
-
-    const newItems = [...navItems];
-    const draggedItem = newItems[draggedIndex];
-    newItems.splice(draggedIndex, 1);
-    newItems.splice(index, 0, draggedItem);
-
+    const newItems = arrayMove(navItems, oldIndex, newIndex);
     setNavItems(newItems);
-    setDraggedIndex(index);
+
+    // Save to Supabase via store
+    await saveSidebarOrder(newItems.map(item => item.path));
   };
 
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    saveNavOrder(navItems);
+  const isModuleShared = (path: string) => {
+    if (!currentOrganization?.metadata?.sharing) return true;
+
+    const pathMap: Record<string, string> = {
+      '/customers': 'customers',
+      '/calendar': 'calendar',
+      '/pipeline': 'pipeline',
+      '/tasks': 'tasks',
+      // Default to shared if not explicitly in the map or metadata
+    };
+
+    const key = pathMap[path];
+    if (!key) return true;
+
+    return currentOrganization.metadata.sharing[key] ?? true;
   };
 
-  const allNavItems = [HOME_ITEM, ...navItems, SETTINGS_ITEM];
-  const mainNavItems = [HOME_ITEM, ...navItems.slice(0, 2)];
-  const moreNavItems = [...navItems.slice(2), SETTINGS_ITEM];
+  const visibleNavItems = navItems.filter(item => isModuleShared(item.path));
+
+  // Mobile navigation logic: show Home, 3 custom items + "More"
+  const mobileCustomPaths = preferences.mobileNavItems || ['/customers', '/calendar', '/products'];
+
+  // Find the actual nav items for the preferred paths
+  const mobileBottomNavItems = [
+    HOME_ITEM,
+    ...mobileCustomPaths
+      .map(path => DEFAULT_NAV_ITEMS.find(item => item.path === path))
+      .filter((item): item is NavItem => !!item)
+  ].slice(0, 4);
+
+  // All other visible items go to "More"
+  const selectedPaths = new Set(mobileBottomNavItems.map(i => i.path));
+  const moreNavItems = visibleNavItems.filter((item: NavItem) => !selectedPaths.has(item.path));
+
+  // Ensure Settings is in More if not selected
+  if (!selectedPaths.has('/settings') && !moreNavItems.some((i: NavItem) => i.path === '/settings')) {
+    moreNavItems.push(SETTINGS_ITEM);
+  }
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-gray-900">
@@ -140,35 +283,25 @@ export const DashboardLayout: React.FC = () => {
             <span className="font-medium">{HOME_ITEM.label}</span>
           </Link>
 
-          {navItems.map((item, index) => (
-            <div
-              key={item.path}
-              draggable
-              onDragStart={() => handleDragStart(index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDragEnd={handleDragEnd}
-              className={`group relative ${draggedIndex === index ? 'opacity-50' : ''}`}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={visibleNavItems.map(item => item.path)}
+              strategy={verticalListSortingStrategy}
             >
-              <Link
-                to={item.path}
-                className={
-                  theme === 'soft-modern'
-                    ? `nav-item flex items-center px-4 py-3 ${isActive(item.path) ? 'active' : ''}`
-                    : `flex items-center px-3 py-2 rounded-lg transition-colors ${isActive(item.path)
-                      ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`
-                }
-              >
-                <GripVertical
-                  size={16}
-                  className={theme === 'soft-modern' ? "mr-2 opacity-0 group-hover:opacity-30 transition-opacity cursor-grab active:cursor-grabbing text-tertiary" : "mr-2 opacity-0 group-hover:opacity-50 transition-opacity cursor-grab active:cursor-grabbing"}
+              {visibleNavItems.map((item) => (
+                <SortableNavItem
+                  key={item.path}
+                  item={item}
+                  isActive={isActive}
+                  theme={theme}
                 />
-                <item.icon size={20} className="mr-3" />
-                <span className="font-medium">{item.label}</span>
-              </Link>
-            </div>
-          ))}
+              ))}
+            </SortableContext>
+          </DndContext>
 
           <Link
             to={SETTINGS_ITEM.path}
@@ -188,26 +321,40 @@ export const DashboardLayout: React.FC = () => {
 
         {/* User Profile */}
         <div className={theme === 'soft-modern' ? "p-4 border-t border-default" : "p-4 border-t border-gray-200 dark:border-gray-700"}>
-          <div className="flex items-center justify-between">
+          <button
+            onClick={() => isSuperAdmin && setShowAdminPanel(true)}
+            className={`w-full flex items-center justify-between p-3 rounded-2xl transition-all ${theme === 'soft-modern'
+              ? 'hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+          >
             <div className="flex items-center">
               <div
-                className={theme === 'soft-modern' ? "w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium bg-base" : "w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium"}
-                style={theme === 'soft-modern' ? {
-                  background: 'var(--sm-accent-primary)',
-                } : undefined}
+                className={theme === 'soft-modern' ? "w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold bg-gradient-to-br from-purple-600 to-blue-600 shadow-md" : "w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-md"}
               >
                 A
               </div>
-              <div className="ml-3">
-                <p className={theme === 'soft-modern' ? "text-sm font-medium text-primary" : "text-sm font-medium text-gray-900 dark:text-white"}>Admin User</p>
-                <p className={theme === 'soft-modern' ? "text-xs text-tertiary" : "text-xs text-gray-500 dark:text-gray-400"}>Dev Mode</p>
+              <div className="ml-3 text-left">
+                <p className={theme === 'soft-modern' ? "text-sm font-black text-primary" : "text-sm font-bold text-gray-900 dark:text-white"}>Admin User</p>
+                {isSuperAdmin ? (
+                  <p className="text-[10px] text-purple-600 dark:text-purple-400 font-black uppercase tracking-wider">Super Admin</p>
+                ) : (
+                  <p className={theme === 'soft-modern' ? "text-[10px] text-tertiary font-bold uppercase" : "text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase"}>Dev Mode</p>
+                )}
               </div>
             </div>
+            {isSuperAdmin && (
+              <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400 stroke-[2.5px]" />
+            )}
+          </button>
+
+          <div className="mt-2 flex items-center justify-between px-3">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">Theme</span>
             <button
               onClick={toggleTheme}
-              className={theme === 'soft-modern' ? "p-2 rounded-lg transition-all btn-ghost" : "p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"}
+              className={theme === 'soft-modern' ? "p-1.5 rounded-lg transition-all btn-ghost" : "p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"}
             >
-              {theme === 'light' ? <Moon size={18} /> : theme === 'dark' ? <Sun size={18} /> : theme === 'soft-modern' ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
             </button>
           </div>
         </div>
@@ -216,17 +363,20 @@ export const DashboardLayout: React.FC = () => {
       {/* Mobile Header - Shown on Mobile Only */}
       <header className="md:hidden sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between h-14 px-4">
-          <h1 className="text-lg font-bold text-indigo-600">CxTrack</h1>
-          <div className="flex items-center space-x-2">
-            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg relative">
-              <Bell size={20} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <h1 className="text-base font-black text-indigo-600 tracking-tight">CxTrack</h1>
+          <div className="flex items-center">
+            <Link to="/calendar" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400">
+              <Calendar size={18} />
+            </Link>
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg relative text-gray-500 dark:text-gray-400">
+              <Bell size={18} />
+              <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"></span>
             </button>
             <button
               onClick={toggleTheme}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400"
             >
-              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </button>
           </div>
         </div>
@@ -241,7 +391,7 @@ export const DashboardLayout: React.FC = () => {
       {/* Mobile Bottom Navigation - Shown on Mobile Only */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 safe-area-bottom">
         <div className="flex justify-around items-center h-16">
-          {mainNavItems.map((item) => (
+          {mobileBottomNavItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
@@ -312,6 +462,11 @@ export const DashboardLayout: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Admin Panel Overlay */}
+      <AdminPanel
+        isOpen={showAdminPanel}
+        onClose={() => setShowAdminPanel(false)}
+      />
     </div>
   );
 };

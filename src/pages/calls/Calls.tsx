@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Phone,
   PhoneIncoming,
@@ -12,7 +13,6 @@ import {
   Download,
   User,
   Bot,
-  X,
   ChevronDown,
   MoreVertical,
   Users,
@@ -40,10 +40,11 @@ export default function Calls() {
     createCall,
   } = useCallStore();
 
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [showLogCallModal, setShowLogCallModal] = useState(false);
-  const [selectedCall, setSelectedCall] = useState<Call | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -165,8 +166,8 @@ export default function Calls() {
                 ${showFilters
                   ? 'bg-blue-50 border-blue-200 text-blue-700'
                   : isDark
-                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                  : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                 }
               `}
             >
@@ -198,11 +199,10 @@ export default function Calls() {
                 <select
                   value={filters.callType || 'all'}
                   onChange={(e) => setFilters({ callType: e.target.value as any })}
-                  className={`w-full px-3 py-2 rounded-lg border-2 text-sm ${
-                    isDark
-                      ? 'bg-gray-700 border-gray-600 text-gray-100'
-                      : 'bg-white border-gray-200 text-gray-900'
-                  }`}
+                  className={`w-full px-3 py-2 rounded-lg border-2 text-sm ${isDark
+                    ? 'bg-gray-700 border-gray-600 text-gray-100'
+                    : 'bg-white border-gray-200 text-gray-900'
+                    }`}
                 >
                   <option value="all">All Calls</option>
                   <option value="human">Human Only</option>
@@ -217,11 +217,10 @@ export default function Calls() {
                 <select
                   value={filters.direction || 'all'}
                   onChange={(e) => setFilters({ direction: e.target.value as any })}
-                  className={`w-full px-3 py-2 rounded-lg border-2 text-sm ${
-                    isDark
-                      ? 'bg-gray-700 border-gray-600 text-gray-100'
-                      : 'bg-white border-gray-200 text-gray-900'
-                  }`}
+                  className={`w-full px-3 py-2 rounded-lg border-2 text-sm ${isDark
+                    ? 'bg-gray-700 border-gray-600 text-gray-100'
+                    : 'bg-white border-gray-200 text-gray-900'
+                    }`}
                 >
                   <option value="all">All</option>
                   <option value="inbound">Inbound</option>
@@ -233,11 +232,10 @@ export default function Calls() {
                 <label className={`text-xs font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2 block`}>
                   Status
                 </label>
-                <select className={`w-full px-3 py-2 rounded-lg border-2 text-sm ${
-                  isDark
-                    ? 'bg-gray-700 border-gray-600 text-gray-100'
-                    : 'bg-white border-gray-200 text-gray-900'
-                }`}>
+                <select className={`w-full px-3 py-2 rounded-lg border-2 text-sm ${isDark
+                  ? 'bg-gray-700 border-gray-600 text-gray-100'
+                  : 'bg-white border-gray-200 text-gray-900'
+                  }`}>
                   <option>All Status</option>
                   <option>Completed</option>
                   <option>Missed</option>
@@ -249,11 +247,10 @@ export default function Calls() {
                 <label className={`text-xs font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2 block`}>
                   Outcome
                 </label>
-                <select className={`w-full px-3 py-2 rounded-lg border-2 text-sm ${
-                  isDark
-                    ? 'bg-gray-700 border-gray-600 text-gray-100'
-                    : 'bg-white border-gray-200 text-gray-900'
-                }`}>
+                <select className={`w-full px-3 py-2 rounded-lg border-2 text-sm ${isDark
+                  ? 'bg-gray-700 border-gray-600 text-gray-100'
+                  : 'bg-white border-gray-200 text-gray-900'
+                  }`}>
                   <option>All Outcomes</option>
                   <option>Positive</option>
                   <option>Neutral</option>
@@ -394,7 +391,7 @@ export default function Calls() {
                   {calls.map((call) => (
                     <tr
                       key={call.id}
-                      onClick={() => setSelectedCall(call)}
+                      onClick={() => navigate(`/calls/${call.id}`)}
                       className={`
                         border-b cursor-pointer transition-colors
                         ${isDark
@@ -459,7 +456,7 @@ export default function Calls() {
                             px-3 py-1 rounded-full text-xs font-semibold
                             ${call.outcome === 'positive' ? 'bg-green-50 text-green-700' :
                               call.outcome === 'negative' ? 'bg-red-50 text-red-700' :
-                              'bg-gray-100 text-gray-700'}
+                                'bg-gray-100 text-gray-700'}
                           `}>
                             {call.outcome.replace('_', ' ')}
                           </span>
@@ -498,13 +495,6 @@ export default function Calls() {
         onSubmit={handleLogCall}
       />
 
-      {selectedCall && (
-        <CallDetailsModal
-          call={selectedCall}
-          onClose={() => setSelectedCall(null)}
-          isDark={isDark}
-        />
-      )}
     </div>
   );
 }
@@ -561,8 +551,8 @@ const TabButton: React.FC<{
         ${active
           ? 'bg-blue-600 text-white shadow-md'
           : isDark
-          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-          : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm'
+            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm'
         }
       `}
     >
@@ -588,9 +578,8 @@ const EmptyState: React.FC<{
 }> = ({ onLogCall, isDark }) => {
   return (
     <div className="text-center py-16">
-      <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
-        isDark ? 'bg-gray-700' : 'bg-gray-100'
-      }`}>
+      <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${isDark ? 'bg-gray-700' : 'bg-gray-100'
+        }`}>
         <Phone className={`w-8 h-8 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
       </div>
       <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>
@@ -606,130 +595,6 @@ const EmptyState: React.FC<{
         <Plus className="w-4 h-4" />
         Log Your First Call
       </button>
-    </div>
-  );
-};
-
-const CallDetailsModal: React.FC<{
-  call: Call;
-  onClose: () => void;
-  isDark: boolean;
-}> = ({ call, onClose, isDark }) => {
-  const getCustomerName = (call: Call) => {
-    if (call.customers) {
-      const customer = call.customers as any;
-      if (customer.first_name || customer.last_name) {
-        return `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
-      }
-      return customer.name || customer.company || 'Unknown Customer';
-    }
-    return 'Unknown Customer';
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl w-full max-w-2xl shadow-2xl border ${isDark ? 'border-gray-700' : 'border-gray-200'} max-h-[90vh] overflow-y-auto`}>
-        <div className={`flex items-center justify-between p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'} sticky top-0 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-          <div className="flex items-center gap-3">
-            {call.call_type === 'human' ? (
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <User className="w-6 h-6 text-blue-600" />
-              </div>
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                <Bot className="w-6 h-6 text-purple-600" />
-              </div>
-            )}
-            <div>
-              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Call Details
-              </h2>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                {getCustomerName(call)}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-          >
-            <X className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className={`text-xs font-semibold ${isDark ? 'text-gray-500' : 'text-gray-500'} uppercase mb-1`}>
-                Direction
-              </p>
-              <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'} capitalize`}>
-                {call.direction}
-              </p>
-            </div>
-
-            <div>
-              <p className={`text-xs font-semibold ${isDark ? 'text-gray-500' : 'text-gray-500'} uppercase mb-1`}>
-                Duration
-              </p>
-              <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s` : '-'}
-              </p>
-            </div>
-
-            <div>
-              <p className={`text-xs font-semibold ${isDark ? 'text-gray-500' : 'text-gray-500'} uppercase mb-1`}>
-                Status
-              </p>
-              <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'} capitalize`}>
-                {call.status}
-              </p>
-            </div>
-
-            <div>
-              <p className={`text-xs font-semibold ${isDark ? 'text-gray-500' : 'text-gray-500'} uppercase mb-1`}>
-                Outcome
-              </p>
-              <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'} capitalize`}>
-                {call.outcome || '-'}
-              </p>
-            </div>
-          </div>
-
-          {call.summary && (
-            <div>
-              <p className={`text-xs font-semibold ${isDark ? 'text-gray-500' : 'text-gray-500'} uppercase mb-2`}>
-                Summary
-              </p>
-              <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                {call.summary}
-              </p>
-            </div>
-          )}
-
-          {call.transcript && (
-            <div>
-              <p className={`text-xs font-semibold ${isDark ? 'text-gray-500' : 'text-gray-500'} uppercase mb-2`}>
-                Transcript
-              </p>
-              <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'} text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'} max-h-64 overflow-y-auto`}>
-                {call.transcript}
-              </div>
-            </div>
-          )}
-
-          {call.notes && (
-            <div>
-              <p className={`text-xs font-semibold ${isDark ? 'text-gray-500' : 'text-gray-500'} uppercase mb-2`}>
-                Notes
-              </p>
-              <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                {call.notes}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 };

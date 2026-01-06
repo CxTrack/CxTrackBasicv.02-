@@ -435,162 +435,245 @@ export default function Tasks() {
             )}
 
             {viewMode === 'table' && (
-              <div className={theme === 'soft-modern' ? 'card overflow-hidden' : 'overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700'}>
-                <div className="w-full overflow-x-auto custom-scrollbar">
-                  <table className="w-full min-w-[900px]">
-                    <thead className={theme === 'soft-modern' ? 'bg-base border-b-2 border-default' : 'bg-slate-50 dark:bg-gray-700 border-b-2 border-slate-100 dark:border-gray-600'}>
-                      <tr>
-                        <th className="w-12 px-3 py-3 text-left">
-                          <input
-                            type="checkbox"
-                            checked={selectAll}
-                            onChange={handleSelectAll}
-                            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                          />
-                        </th>
-                        <th className="w-12 text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                          #
-                        </th>
-                        <th className="min-w-[250px] px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                          Task
-                        </th>
-                        <th className="w-32 px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                          Status
-                        </th>
-                        <th className="w-28 px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                          Priority
-                        </th>
-                        <th className="w-32 px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                          Due Date
-                        </th>
-                        <th className="w-36 px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                          Customer
-                        </th>
-                        <th className="w-24 px-3 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y-2 divide-slate-100 dark:divide-gray-700">
-                      {filteredTasks.map((task, index) => {
-                        const overdue = isOverdue(task.dueDate, task.status);
-                        return (
-                          <tr
-                            key={task.id}
-                            onClick={() => openTaskDetail(task)}
-                            className={`hover:bg-slate-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer border-b border-slate-100 dark:border-gray-700 ${overdue ? 'border-l-4 border-l-rose-500' : ''
-                              }`}
-                          >
-                            <td className="px-3 py-3">
-                              <input
-                                type="checkbox"
-                                checked={selectedTasks.has(task.id)}
-                                onChange={(e) => {
-                                  e.stopPropagation();
-                                  handleSelectTask(task.id);
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                              />
-                            </td>
-                            <td className="text-center px-3 py-3">
-                              <span className="text-sm font-medium text-slate-400">
-                                {index + 1}
-                              </span>
-                            </td>
-
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-3">
-                                {task.status === 'Completed' ? (
-                                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                                ) : (
-                                  <Circle className="w-5 h-5 text-slate-300 dark:text-gray-600 flex-shrink-0" />
-                                )}
-                                <div className="min-w-0">
-                                  <div className="font-medium text-slate-900 dark:text-white truncate">{task.title}</div>
-                                  {task.description && (
-                                    <div className="text-sm text-slate-500 dark:text-gray-400 mt-0.5 truncate">
-                                      {task.description}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-
-                            <td className="px-3 py-3">
-                              <select
-                                value={task.status}
-                                onChange={(e) => {
-                                  e.stopPropagation();
-                                  updateTaskStatus(task.id, e.target.value);
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                                className={`px-2 py-1.5 rounded-lg text-sm font-medium border-2 transition-colors w-full ${statusStyles[task.status]
-                                  }`}
-                              >
-                                <option value="To Do">To Do</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
-                              </select>
-                            </td>
-
-                            <td className="px-3 py-3">
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${priorityColors[task.priority]
-                                    }`}
+              <>
+                {/* Desktop Table View */}
+                <div className={theme === 'soft-modern' ? 'hidden md:block card overflow-hidden' : 'hidden md:block overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700'}>
+                  <div className="w-full overflow-x-auto custom-scrollbar">
+                    <table className="w-full min-w-[900px]">
+                      <thead className={theme === 'soft-modern' ? 'bg-base border-b-2 border-default' : 'bg-slate-50 dark:bg-gray-700 border-b-2 border-slate-100 dark:border-gray-600'}>
+                        <tr>
+                          <th className="w-12 px-3 py-3 text-left">
+                            <input
+                              type="checkbox"
+                              checked={selectAll}
+                              onChange={handleSelectAll}
+                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                          </th>
+                          <th className="w-12 text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            #
+                          </th>
+                          <th className="min-w-[250px] px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Task
+                          </th>
+                          <th className="w-32 px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Status
+                          </th>
+                          <th className="w-28 px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Priority
+                          </th>
+                          <th className="w-32 px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Due Date
+                          </th>
+                          <th className="w-36 px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Customer
+                          </th>
+                          <th className="w-24 px-3 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y-2 divide-slate-100 dark:divide-gray-700">
+                        {filteredTasks.map((task, index) => {
+                          const overdue = isOverdue(task.dueDate, task.status);
+                          return (
+                            <tr
+                              key={task.id}
+                              onClick={() => openTaskDetail(task)}
+                              className={`hover:bg-slate-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer border-b border-slate-100 dark:border-gray-700 ${overdue ? 'border-l-4 border-l-rose-500' : ''
+                                }`}
+                            >
+                              <td className="px-3 py-3">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedTasks.has(task.id)}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectTask(task.id);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                 />
-                                <span className="text-sm text-slate-700 dark:text-gray-300 capitalize truncate">
-                                  {task.priority}
+                              </td>
+                              <td className="text-center px-3 py-3">
+                                <span className="text-sm font-medium text-slate-400">
+                                  {index + 1}
                                 </span>
-                              </div>
-                            </td>
+                              </td>
 
-                            <td className="px-3 py-3">
-                              <div className="flex items-center gap-2 min-w-0">
-                                {overdue && <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />}
-                                <span
-                                  className={`text-sm truncate ${overdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-slate-700 dark:text-gray-300'
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  {task.status === 'Completed' ? (
+                                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                  ) : (
+                                    <Circle className="w-5 h-5 text-slate-300 dark:text-gray-600 flex-shrink-0" />
+                                  )}
+                                  <div className="min-w-0">
+                                    <div className="font-medium text-slate-900 dark:text-white truncate">{task.title}</div>
+                                    {task.description && (
+                                      <div className="text-sm text-slate-500 dark:text-gray-400 mt-0.5 truncate">
+                                        {task.description}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td className="px-3 py-3">
+                                <select
+                                  value={task.status}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    updateTaskStatus(task.id, e.target.value);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className={`px-2 py-1.5 rounded-lg text-sm font-medium border-2 transition-colors w-full ${statusStyles[task.status]
                                     }`}
                                 >
-                                  {formatDate(task.dueDate)}
+                                  <option value="To Do">To Do</option>
+                                  <option value="In Progress">In Progress</option>
+                                  <option value="Completed">Completed</option>
+                                </select>
+                              </td>
+
+                              <td className="px-3 py-3">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${priorityColors[task.priority]
+                                      }`}
+                                  />
+                                  <span className="text-sm text-slate-700 dark:text-gray-300 capitalize truncate">
+                                    {task.priority}
+                                  </span>
+                                </div>
+                              </td>
+
+                              <td className="px-3 py-3">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  {overdue && <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />}
+                                  <span
+                                    className={`text-sm truncate ${overdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-slate-700 dark:text-gray-300'
+                                      }`}
+                                  >
+                                    {formatDate(task.dueDate)}
+                                  </span>
+                                </div>
+                              </td>
+
+                              <td className="px-3 py-3">
+                                <span className="text-sm text-slate-700 dark:text-gray-300 truncate block" title={task.customer || ''}>
+                                  {task.customer || '—'}
                                 </span>
-                              </div>
-                            </td>
+                              </td>
 
-                            <td className="px-3 py-3">
-                              <span className="text-sm text-slate-700 dark:text-gray-300 truncate block" title={task.customer || ''}>
-                                {task.customer || '—'}
+                              <td className="px-3 py-3">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openTaskDetail(task);
+                                    }}
+                                    className="p-1.5 text-slate-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteTask(task.id);
+                                    }}
+                                    className="p-1.5 text-slate-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                  {filteredTasks.map((task) => {
+                    const overdue = isOverdue(task.dueDate, task.status);
+                    return (
+                      <div
+                        key={task.id}
+                        onClick={() => openTaskDetail(task)}
+                        className={`bg-white dark:bg-gray-800 rounded-xl p-4 border-2 transition-all active:scale-[0.98] ${overdue ? 'border-rose-200 dark:border-rose-900/30 shadow-rose-50 dark:shadow-none' : 'border-gray-100 dark:border-gray-700'
+                          }`}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectTask(task.id);
+                              }}
+                              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${selectedTasks.has(task.id)
+                                  ? 'bg-blue-600 border-blue-600 text-white'
+                                  : 'border-gray-300 dark:border-gray-600'
+                                }`}
+                            >
+                              {selectedTasks.has(task.id) && <CheckCircle2 size={12} />}
+                            </button>
+                            <h3 className="font-semibold text-gray-900 dark:text-white truncate pr-2">
+                              {task.title}
+                            </h3>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${task.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                              task.status === 'In Progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                            }`}>
+                            {task.status}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Customer</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{task.customer || '—'}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Due Date</span>
+                            <div className="flex items-center gap-1.5">
+                              {overdue && <AlertCircle size={14} className="text-rose-500" />}
+                              <span className={`font-medium ${overdue ? 'text-rose-600' : 'text-gray-900 dark:text-white'}`}>
+                                {formatDate(task.dueDate)}
                               </span>
-                            </td>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Priority</span>
+                            <div className="flex items-center gap-1.5 font-medium capitalize text-gray-900 dark:text-white">
+                              <div className={`w-2 h-2 rounded-full ${priorityColors[task.priority]}`} />
+                              {task.priority}
+                            </div>
+                          </div>
+                        </div>
 
-                            <td className="px-3 py-3">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openTaskDetail(task);
-                                  }}
-                                  className="p-1.5 text-slate-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteTask(task.id);
-                                  }}
-                                  className="p-1.5 text-slate-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                        <div className="flex items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); updateTaskStatus(task.id, task.status === 'Completed' ? 'To Do' : 'Completed'); }}
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${task.status === 'Completed'
+                                ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                                : 'bg-emerald-600 text-white'
+                              }`}>
+                            {task.status === 'Completed' ? 'Mark Incomplete' : 'Complete Task'}
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openTaskDetail(task); }}
+                            className="px-4 py-2 bg-blue-50 text-blue-600 dark:bg-blue-900/30 rounded-lg text-xs font-bold"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {filteredTasks.length === 0 && (
@@ -600,7 +683,7 @@ export default function Tasks() {
                     <p className="text-sm mt-1">Try adjusting your search or filters</p>
                   </div>
                 )}
-              </div>
+              </>
             )}
 
             {viewMode === 'kanban' && (

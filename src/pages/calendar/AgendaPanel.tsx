@@ -1,4 +1,3 @@
-import React from 'react';
 import { format } from 'date-fns';
 import {
   X, Clock, MapPin, Users, Calendar, Plus
@@ -25,7 +24,7 @@ export default function AgendaPanel({
   const { theme } = useThemeStore();
 
   return (
-    <Card className={`w-96 border-l ${theme === 'soft-modern' ? 'border-gray-200' : 'border-gray-200 dark:border-gray-700'} flex flex-col rounded-none`}>
+    <Card className={`w-full lg:w-96 border-l ${theme === 'soft-modern' ? 'border-gray-200' : 'border-gray-200 dark:border-gray-700'} flex flex-col rounded-none`}>
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -75,13 +74,12 @@ export default function AgendaPanel({
                     <Clock size={14} className="mr-1" />
                     {format(new Date(event.start_time), 'h:mm a')}
                   </span>
-                  <span className={`w-2 h-2 rounded-full ${
-                    event.status === 'confirmed'
-                      ? 'bg-green-500'
-                      : event.status === 'cancelled'
+                  <span className={`w-2 h-2 rounded-full ${event.status === 'confirmed'
+                    ? 'bg-green-500'
+                    : event.status === 'cancelled'
                       ? 'bg-red-500'
                       : 'bg-gray-400'
-                  }`} />
+                    }`} />
                 </div>
 
                 <h4 className="font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -89,10 +87,10 @@ export default function AgendaPanel({
                 </h4>
 
                 <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
-                  {event.attendee_name && (
+                  {event.attendees && event.attendees.length > 0 && (
                     <p className="flex items-center">
                       <Users size={12} className="mr-1" />
-                      {event.attendee_name}
+                      {event.attendees[0].name}
                     </p>
                   )}
                   {event.location && (
@@ -106,8 +104,8 @@ export default function AgendaPanel({
                 <div className="mt-3">
                   <span className="px-2 py-1 text-xs rounded-full font-medium"
                     style={{
-                      backgroundColor: `${event.color || '#6366f1'}20`,
-                      color: event.color || '#6366f1'
+                      backgroundColor: `${event.color_code || '#6366f1'}20`,
+                      color: event.color_code || '#6366f1'
                     }}
                   >
                     {event.event_type}

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useCustomerStore } from '@/stores/customerStore';
 import { useThemeStore } from '@/stores/themeStore';
+import { useOrganizationStore } from '@/stores/organizationStore';
 import CustomerModal from '@/components/customers/CustomerModal';
 import { getCustomerFullName } from '@/utils/customer.utils';
 import { formatPhoneDisplay } from '@/utils/phone.utils';
@@ -21,6 +22,7 @@ export const Customers: React.FC = () => {
 
   const { customers, loading, fetchCustomers, deleteCustomer } = useCustomerStore();
   const { theme } = useThemeStore();
+  const { currentMembership } = useOrganizationStore();
 
   useEffect(() => {
     fetchCustomers();
@@ -44,6 +46,10 @@ export const Customers: React.FC = () => {
   });
 
   const handleDelete = async (id: string) => {
+    if (currentMembership?.role !== 'owner' && currentMembership?.role !== 'admin') {
+      toast.error('You do not have permission to delete customers');
+      return;
+    }
     if (confirm('Are you sure you want to delete this customer?')) {
       try {
         await deleteCustomer(id);
@@ -332,13 +338,15 @@ export const Customers: React.FC = () => {
                             >
                               <Edit size={18} />
                             </Link>
-                            <button
-                              onClick={() => handleDelete(customer.id)}
-                              className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 size={18} />
-                            </button>
+                            {(currentMembership?.role === 'owner' || currentMembership?.role === 'admin') && (
+                              <button
+                                onClick={() => handleDelete(customer.id)}
+                                className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -348,65 +356,68 @@ export const Customers: React.FC = () => {
               </div>
             </div>
 
-            <div className="md:hidden p-4 space-y-3">
+            <div className="md:hidden space-y-4 px-4 pb-20">
               {filteredCustomers.map((customer) => (
                 <Link
                   key={customer.id}
                   to={`/customers/${customer.id}`}
-                  className="block bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 transition-colors"
+                  className="block bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm active:scale-[0.98] transition-all"
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center text-primary-700 dark:text-primary-400 font-semibold">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg ${customer.customer_type === 'business'
+                          ? 'bg-gradient-to-br from-purple-500 to-indigo-600'
+                          : 'bg-gradient-to-br from-blue-500 to-cyan-600'
+                        }`}>
                         {customer.customer_type === 'business' ? (
-                          <Building2 size={20} />
+                          <Building2 size={24} />
                         ) : (
                           getCustomerFullName(customer).charAt(0).toUpperCase()
                         )}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                        <h3 className="font-bold text-gray-900 dark:text-white">
                           {getCustomerFullName(customer)}
                         </h3>
-                        {customer.company && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {customer.company}
-                          </p>
-                        )}
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {customer.company || (customer.customer_type === 'personal' ? 'Individual' : 'Business')}
+                        </p>
                       </div>
                     </div>
-                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${customer.customer_type === 'business'
-                      ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400'
-                      : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
-                      }`}>
-                      {customer.customer_type === 'business' ? 'Business' : 'Personal'}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 text-sm">
-                    {customer.email && (
-                      <div className="flex items-center text-gray-600 dark:text-gray-400">
-                        <Mail size={14} className="mr-2 flex-shrink-0" />
-                        <span className="truncate">{customer.email}</span>
-                      </div>
-                    )}
-                    {customer.phone && (
-                      <div className="flex items-center text-gray-600 dark:text-gray-400">
-                        <Phone size={14} className="mr-2 flex-shrink-0" />
-                        {formatPhoneDisplay(customer.phone)}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${customer.status === 'Active'
-                      ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
+                    <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase border ${customer.status === 'Active'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                        : 'bg-gray-50 text-gray-700 border-gray-100'
                       }`}>
                       {customer.status}
                     </span>
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                      ${customer.total_spent?.toLocaleString() || '0.00'}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="p-2 rounded-xl bg-gray-50 dark:bg-gray-900/50">
+                      <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Contact</p>
+                      <div className="flex items-center text-xs text-gray-700 dark:text-gray-300">
+                        <Mail size={12} className="mr-1.5 text-blue-500" />
+                        <span className="truncate">{customer.email || 'No email'}</span>
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-xl bg-gray-50 dark:bg-gray-900/50">
+                      <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Spent</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">
+                        ${customer.total_spent?.toLocaleString() || '0.00'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-700">
+                    <div className="flex items-center -space-x-2">
+                      {/* Subtle visual indicator or action shortcuts if needed */}
+                      <div className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 bg-blue-100 flex items-center justify-center">
+                        <Eye size={14} className="text-blue-600" />
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center">
+                      View Profile
+                      <Plus size={14} className="ml-1 rotate-45" />
                     </span>
                   </div>
                 </Link>
