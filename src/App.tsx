@@ -30,6 +30,7 @@ import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { CookieConsent } from './components/common/CookieConsent';
 
 import { CallDetail } from './pages/calls/CallDetail';
+import { AdminPage } from './pages/admin/AdminPage';
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
             <Routes>
               <Route path="/share/quote/:token" element={<PublicQuoteView />} />
               <Route path="/share/invoice/:token" element={<PublicInvoiceView />} />
+              <Route path="/admin" element={<AdminPage />} />
 
               <Route path="/" element={<DashboardLayout />}>
                 <Route index element={<Navigate to="/dashboard" replace />} />

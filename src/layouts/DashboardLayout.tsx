@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../stores/themeStore';
 import { useOrganizationStore } from '../stores/organizationStore';
 import { useAuthContext } from '../contexts/AuthContext';
@@ -22,7 +22,7 @@ import {
   TrendingUp,
   Shield,
 } from 'lucide-react';
-import AdminPanel from '../components/admin/AdminPanel';
+
 import { supabase } from '../lib/supabase';
 import { useCoPilot } from '../contexts/CoPilotContext';
 import { usePreferencesStore } from '../stores/preferencesStore';
@@ -121,12 +121,13 @@ export const DashboardLayout: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [navItems, setNavItems] = useState<NavItem[]>(DEFAULT_NAV_ITEMS);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
+
 
   const { theme, toggleTheme } = useThemeStore();
   const { preferences, saveSidebarOrder } = usePreferencesStore();
   const { fetchUserOrganizations, currentOrganization, demoMode } = useOrganizationStore();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuthContext();
   const { isOpen: isCoPilotOpen, panelSide } = useCoPilot();
   const { loadPreferences } = usePreferencesStore();
@@ -322,7 +323,7 @@ export const DashboardLayout: React.FC = () => {
         {/* User Profile */}
         <div className={theme === 'soft-modern' ? "p-4 border-t border-default" : "p-4 border-t border-gray-200 dark:border-gray-700"}>
           <button
-            onClick={() => isSuperAdmin && setShowAdminPanel(true)}
+            onClick={() => isSuperAdmin && navigate('/admin')}
             className={`w-full flex items-center justify-between p-3 rounded-2xl transition-all ${theme === 'soft-modern'
               ? 'hover:bg-slate-100 dark:hover:bg-slate-800'
               : 'hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -462,11 +463,6 @@ export const DashboardLayout: React.FC = () => {
           </div>
         </div>
       )}
-      {/* Admin Panel Overlay */}
-      <AdminPanel
-        isOpen={showAdminPanel}
-        onClose={() => setShowAdminPanel(false)}
-      />
     </div>
   );
 };

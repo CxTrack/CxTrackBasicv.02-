@@ -72,7 +72,7 @@ export const CoPilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const lowerMessage = userMessage.toLowerCase();
 
     // HANDLED IN SEND_MESSAGE FOR ACTIONS
-    if (lowerMessage.includes('add a note') || lowerMessage.includes('add note')) {
+    if (lowerMessage.includes('add a note') || lowerMessage.includes('add note') || lowerMessage.includes('put a note') || lowerMessage.includes('create a note')) {
       return "Thinking..."; // Placeholder, actual logic in sendMessage
     }
 
@@ -114,14 +114,13 @@ export const CoPilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const lowerContent = content.toLowerCase();
 
       // LOGIC FOR ACTIONS
-      if (lowerContent.includes('add a note') || lowerContent.includes('add note')) {
+      if (lowerContent.includes('add a note') || lowerContent.includes('add note') || lowerContent.includes('put a note') || lowerContent.includes('create a note')) {
         // Ensure customers are loaded
         if (customers.length === 0) {
           await fetchCustomers();
         }
 
         // Simple name extraction (e.g., "add a note on Manik Sharma's profile...")
-        const nameKeywords = content.split(' ');
         let customer = null;
 
         // Try to find a matching customer name in the query
