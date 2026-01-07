@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase';
 import { Customer, CustomerNote, CustomerContact, CustomerFile } from '@/types/database.types';
 import { useOrganizationStore } from './organizationStore';
 import { DEMO_MODE, DEMO_STORAGE_KEYS, loadDemoData, saveDemoData, generateDemoId } from '@/config/demo.config';
-import { MOCK_ADMIN_USER } from '@/contexts/AuthContext';
 
 interface CustomerStore {
   customers: Customer[];
@@ -101,7 +100,6 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
     if (DEMO_MODE) {
       try {
-        const existingCustomers = get().customers;
         const fullName = [
           customer.first_name,
           customer.middle_name,
@@ -116,20 +114,24 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
           last_name: customer.last_name || '',
           email: customer.email || '',
           phone: customer.phone || null,
-          customer_type: customer.customer_type || 'personal',
-          company_name: customer.company_name || null,
+          customer_type: (customer.customer_type as any) || 'personal',
+          company: customer.company || null,
           status: customer.status || 'Active',
           country: customer.country || 'CA',
-          province: customer.province || null,
+          state: customer.state || null,
           city: customer.city || null,
           postal_code: customer.postal_code || null,
           address: customer.address || null,
-          customer_category: customer.customer_type === 'business' ? 'Business' : 'Personal',
+          customer_category: customer.customer_category || (customer.customer_type === 'business' ? 'Business' : 'Personal'),
+          type: customer.type || (customer.customer_type === 'business' ? 'Business' : 'Individual'),
+          priority: customer.priority || 'Medium',
           total_spent: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          organization_id: 'demo-org',
-          created_by: 'demo-user',
+          organization_id: customer.organization_id || 'demo-org',
+          created_by: customer.created_by || 'demo-user',
+          custom_fields: customer.custom_fields || {},
+          tags: customer.tags || [],
         } as Customer;
 
         const updatedCustomers = [newCustomer, ...get().customers];
@@ -143,7 +145,7 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
     }
 
     try {
-      const organizationId = MOCK_ADMIN_USER.organization_id;
+      const organizationId = customer.organization_id || useOrganizationStore.getState().getOrganizationId();
       const fullName = [
         customer.first_name,
         customer.middle_name,

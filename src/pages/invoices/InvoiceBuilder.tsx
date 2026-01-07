@@ -14,6 +14,8 @@ import ProductSelector from '@/components/products/ProductSelector';
 import ShareDropdown, { ShareOption } from '@/components/share/ShareDropdown';
 import ShareModal from '@/components/share/ShareModal';
 import QuickAddCustomerModal from '@/components/shared/QuickAddCustomerModal';
+import CreationSuccessModal from '@/components/shared/CreationSuccessModal';
+import { User, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getCustomerFullName } from '@/utils/customer.utils';
 
@@ -33,6 +35,7 @@ export default function InvoiceBuilder() {
   const [shareModalTab, setShareModalTab] = useState<'email' | 'link' | 'pdf' | 'sms'>('link');
   const [savedInvoice, setSavedInvoice] = useState<any>(null);
   const [showQuickAddCustomer, setShowQuickAddCustomer] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [formData, setFormData] = useState<InvoiceFormData>({
     customer_id: '',
@@ -447,6 +450,7 @@ export default function InvoiceBuilder() {
         if (invoice) {
           setSavedInvoice(invoice);
           toast.success('Invoice created successfully');
+          setShowSuccessModal(true);
           window.history.replaceState(null, '', `/invoices/builder/${invoice.id}`);
         } else {
           throw new Error('Failed to create invoice');
@@ -503,216 +507,214 @@ export default function InvoiceBuilder() {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-[1920px] mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {id ? 'Edit Invoice' : 'Create Invoice'}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Build a professional invoice for your customer
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => navigate('/invoices')}>
-            <X className="w-4 h-4 mr-2" />
-            Cancel
-          </Button>
-          <Button variant="outline" onClick={handleSaveDraft} disabled={saving}>
-            <Save className="w-4 h-4 mr-2" />
-            Save Draft
-          </Button>
-          <ShareDropdown
-            onSelect={handleShareOption}
-            disabled={!savedInvoice || savedInvoice?.status === 'draft'}
-            buttonText="Share"
-            variant="secondary"
-          />
-          {demoMode && (
-            <div className="px-3 py-1.5 bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-100 text-sm font-medium rounded-lg border border-amber-300 dark:border-amber-700">
-              Demo Mode
-            </div>
-          )}
-          <Button
-            onClick={handleCreate}
-            disabled={
-              saving ||
-              !formData.customer_id ||
-              formData.items.length === 0 ||
-              formData.total_amount <= 0
-            }
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {id ? 'Updating...' : 'Creating...'}
-              </>
-            ) : (
-              id ? 'Update Invoice' : 'Create Invoice'
-            )}
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Customer</h2>
-            <div className="flex gap-2">
-              <select
-                value={formData.customer_id}
-                onChange={(e) => handleCustomerChange(e.target.value)}
-                className="flex-1 px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
-              >
-                <option value="">Select customer...</option>
-                {customers.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {getCustomerFullName(customer)}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => setShowQuickAddCustomer(true)}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap font-medium"
-              >
-                <Plus size={18} />
-                Quick Add
-              </button>
-            </div>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              {id ? 'Edit Invoice' : 'Create Invoice'}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Build a professional invoice for your customer
+            </p>
           </div>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => navigate('/invoices')}>
+              <X className="w-4 h-4 mr-2" />
+              Cancel
+            </Button>
+            <Button variant="outline" onClick={handleSaveDraft} disabled={saving}>
+              <Save className="w-4 h-4 mr-2" />
+              Save Draft
+            </Button>
+            <ShareDropdown
+              onSelect={handleShareOption}
+              disabled={!savedInvoice || savedInvoice?.status === 'draft'}
+              buttonText="Share"
+              variant="secondary"
+            />
+            {demoMode && (
+              <div className="px-3 py-1.5 bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-100 text-sm font-medium rounded-lg border border-amber-300 dark:border-amber-700">
+                Demo Mode
+              </div>
+            )}
+            <Button
+              onClick={handleCreate}
+              disabled={
+                saving ||
+                !formData.customer_id ||
+                formData.items.length === 0 ||
+                formData.total_amount <= 0
+              }
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {id ? 'Updating...' : 'Creating...'}
+                </>
+              ) : (
+                id ? 'Update Invoice' : 'Create Invoice'
+              )}
+            </Button>
+          </div>
+        </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Line Items</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Customer</h2>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setShowProductCatalog(!showProductCatalog)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  From Catalog
-                </Button>
-                <Button size="sm" onClick={addLineItem}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Item
-                </Button>
+                <select
+                  value={formData.customer_id}
+                  onChange={(e) => handleCustomerChange(e.target.value)}
+                  className="flex-1 px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                >
+                  <option value="">Select customer...</option>
+                  {customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {getCustomerFullName(customer)}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAddCustomer(true)}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap font-medium"
+                >
+                  <Plus size={18} />
+                  Quick Add
+                </button>
               </div>
             </div>
 
-            <ProductSelector
-              isOpen={showProductCatalog}
-              onClose={() => setShowProductCatalog(false)}
-              onSelect={(product) => addProductFromCatalog(product.id)}
-              organizationId={currentOrganization?.id}
-            />
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Line Items</h2>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setShowProductCatalog(!showProductCatalog)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    From Catalog
+                  </Button>
+                  <Button size="sm" onClick={addLineItem}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Item
+                  </Button>
+                </div>
+              </div>
 
-            <div className="space-y-3">
-              {formData.items.map((item, index) => (
-                <div
-                  key={index}
-                  draggable
-                  onDragStart={() => handleDragStart(index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDragEnd={handleDragEnd}
-                  className="space-y-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border-2 border-gray-200 dark:border-gray-700 relative group"
-                >
-                  <div className="absolute left-2 top-6 cursor-move opacity-0 group-hover:opacity-100 transition-opacity">
-                    <GripVertical className="w-5 h-5 text-gray-400" />
-                  </div>
+              <ProductSelector
+                isOpen={showProductCatalog}
+                onClose={() => setShowProductCatalog(false)}
+                onSelect={(product) => addProductFromCatalog(product.id)}
+                organizationId={currentOrganization?.id}
+              />
 
-                  <div className="ml-8 space-y-3">
-                    {/* Row 1: Type Selector */}
-                    <div className="flex items-center gap-3">
-                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                        Type: *
-                      </label>
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateLineItem(index, 'product_type', 'product')}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
-                            item.product_type === 'product'
-                              ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                              : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-400'
-                          }`}
-                        >
-                          <Package size={18} />
-                          <span className="font-medium">Product</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => updateLineItem(index, 'product_type', 'service')}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
-                            item.product_type === 'service'
-                              ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
-                              : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-400'
-                          }`}
-                        >
-                          <Briefcase size={18} />
-                          <span className="font-medium">Service</span>
-                        </button>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setShowProductCatalog(true)}
-                        className="ml-auto px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors font-medium text-sm"
-                      >
-                        From Catalog
-                      </button>
+              <div className="space-y-3">
+                {formData.items.map((item, index) => (
+                  <div
+                    key={index}
+                    draggable
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragEnd={handleDragEnd}
+                    className="space-y-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border-2 border-gray-200 dark:border-gray-700 relative group"
+                  >
+                    <div className="absolute left-2 top-6 cursor-move opacity-0 group-hover:opacity-100 transition-opacity">
+                      <GripVertical className="w-5 h-5 text-gray-400" />
                     </div>
 
-                    {/* Row 2: Main Fields */}
-                    <div className="grid grid-cols-12 gap-3">
-                      <div className="col-span-3">
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Item Name *
+                    <div className="ml-8 space-y-3">
+                      {/* Row 1: Type Selector */}
+                      <div className="flex items-center gap-3">
+                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                          Type: *
                         </label>
-                        <Input
-                          type="text"
-                          value={item.product_name}
-                          onChange={(e) => updateLineItem(index, 'product_name', e.target.value)}
-                          onBlur={() => handleItemBlur(index)}
-                          placeholder={item.product_type === 'product' ? 'Product name' : item.product_type === 'service' ? 'Service name' : 'Select type first'}
-                          className="text-sm"
-                          disabled={!item.product_type}
-                        />
-                        {!item.product_type && item.product_name === '' && (
-                          <p className="text-xs text-red-600 mt-1">
-                            ↑ Select type first
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="col-span-3">
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Qty *
-                        </label>
-                        <div className="flex items-center gap-2">
+                        <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => {
-                              const newQty = Math.max(1, item.quantity - 1);
-                              updateLineItem(index, 'quantity', newQty);
-                            }}
-                            disabled={!item.product_type || item.quantity <= 1}
-                            className={`
+                            onClick={() => updateLineItem(index, 'product_type', 'product')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${item.product_type === 'product'
+                              ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                              : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-400'
+                              }`}
+                          >
+                            <Package size={18} />
+                            <span className="font-medium">Product</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => updateLineItem(index, 'product_type', 'service')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${item.product_type === 'service'
+                              ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
+                              : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-400'
+                              }`}
+                          >
+                            <Briefcase size={18} />
+                            <span className="font-medium">Service</span>
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setShowProductCatalog(true)}
+                          className="ml-auto px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors font-medium text-sm"
+                        >
+                          From Catalog
+                        </button>
+                      </div>
+
+                      {/* Row 2: Main Fields */}
+                      <div className="grid grid-cols-12 gap-3">
+                        <div className="col-span-3">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Item Name *
+                          </label>
+                          <Input
+                            type="text"
+                            value={item.product_name}
+                            onChange={(e) => updateLineItem(index, 'product_name', e.target.value)}
+                            onBlur={() => handleItemBlur(index)}
+                            placeholder={item.product_type === 'product' ? 'Product name' : item.product_type === 'service' ? 'Service name' : 'Select type first'}
+                            className="text-sm"
+                            disabled={!item.product_type}
+                          />
+                          {!item.product_type && item.product_name === '' && (
+                            <p className="text-xs text-red-600 mt-1">
+                              ↑ Select type first
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="col-span-3">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Qty *
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newQty = Math.max(1, item.quantity - 1);
+                                updateLineItem(index, 'quantity', newQty);
+                              }}
+                              disabled={!item.product_type || item.quantity <= 1}
+                              className={`
                               p-2 rounded-lg transition-colors flex-shrink-0
                               ${!item.product_type || item.quantity <= 1
-                                ? 'opacity-30 cursor-not-allowed bg-gray-100 dark:bg-gray-800'
-                                : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
-                              }
+                                  ? 'opacity-30 cursor-not-allowed bg-gray-100 dark:bg-gray-800'
+                                  : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+                                }
                             `}
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => {
-                              const newQty = Math.max(1, parseFloat(e.target.value) || 1);
-                              updateLineItem(index, 'quantity', newQty);
-                            }}
-                            placeholder="1"
-                            className={`
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const newQty = Math.max(1, parseFloat(e.target.value) || 1);
+                                updateLineItem(index, 'quantity', newQty);
+                              }}
+                              placeholder="1"
+                              className={`
                               w-16 px-2 py-2 rounded-lg border-2 text-sm text-center font-semibold
                               bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600
                               text-gray-900 dark:text-white
@@ -722,272 +724,295 @@ export default function InvoiceBuilder() {
                               [&::-webkit-inner-spin-button]:appearance-none
                               disabled:opacity-50 disabled:cursor-not-allowed
                             `}
-                            min="1"
-                            step="1"
-                            disabled={!item.product_type}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newQty = item.quantity + 1;
-                              updateLineItem(index, 'quantity', newQty);
-                            }}
-                            disabled={!item.product_type}
-                            className={`
+                              min="1"
+                              step="1"
+                              disabled={!item.product_type}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newQty = item.quantity + 1;
+                                updateLineItem(index, 'quantity', newQty);
+                              }}
+                              disabled={!item.product_type}
+                              className={`
                               p-2 rounded-lg transition-colors flex-shrink-0
                               ${!item.product_type
-                                ? 'opacity-30 cursor-not-allowed bg-gray-100 dark:bg-gray-800'
-                                : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
-                              }
+                                  ? 'opacity-30 cursor-not-allowed bg-gray-100 dark:bg-gray-800'
+                                  : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+                                }
                             `}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="col-span-2">
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Unit Price *
-                        </label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">$</span>
+                        <div className="col-span-2">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Unit Price *
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">$</span>
+                            <Input
+                              type="number"
+                              value={item.unit_price}
+                              onChange={(e) => updateLineItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                              onBlur={() => handleItemBlur(index)}
+                              placeholder="0.00"
+                              className="text-sm text-right pl-7"
+                              min="0"
+                              step="0.01"
+                              disabled={!item.product_type}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="col-span-2">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Discount ($)
+                          </label>
                           <Input
                             type="number"
-                            value={item.unit_price}
-                            onChange={(e) => updateLineItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                            onBlur={() => handleItemBlur(index)}
+                            value={item.discount_amount || 0}
+                            onChange={(e) => updateLineItem(index, 'discount_amount', parseFloat(e.target.value) || 0)}
                             placeholder="0.00"
-                            className="text-sm text-right pl-7"
+                            className="text-sm text-center"
                             min="0"
                             step="0.01"
                             disabled={!item.product_type}
                           />
                         </div>
+
+                        <div className="col-span-1">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Total
+                          </label>
+                          <div className="flex items-center justify-end h-[42px]">
+                            <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                              ${item.line_total.toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="col-span-1 flex items-end justify-end pb-2">
+                          <button
+                            onClick={() => removeLineItem(index)}
+                            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 rounded transition-colors"
+                            title="Delete item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="col-span-2">
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Discount ($)
-                        </label>
+                      {/* Row 3: Description */}
+                      <div>
                         <Input
-                          type="number"
-                          value={item.discount_amount || 0}
-                          onChange={(e) => updateLineItem(index, 'discount_amount', parseFloat(e.target.value) || 0)}
-                          placeholder="0.00"
-                          className="text-sm text-center"
-                          min="0"
-                          step="0.01"
+                          type="text"
+                          value={item.description || ''}
+                          onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                          placeholder="Description (optional)"
+                          className="text-sm"
                           disabled={!item.product_type}
                         />
                       </div>
 
-                      <div className="col-span-1">
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Total
-                        </label>
-                        <div className="flex items-center justify-end h-[42px]">
-                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                            ${item.line_total.toFixed(2)}
-                          </div>
+                      {/* Save Indicator */}
+                      {item.product_id && (
+                        <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                          <Check size={14} />
+                          <span>Saved to catalog</span>
                         </div>
-                      </div>
-
-                      <div className="col-span-1 flex items-end justify-end pb-2">
-                        <button
-                          onClick={() => removeLineItem(index)}
-                          className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 rounded transition-colors"
-                          title="Delete item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      )}
                     </div>
-
-                    {/* Row 3: Description */}
-                    <div>
-                      <Input
-                        type="text"
-                        value={item.description || ''}
-                        onChange={(e) => updateLineItem(index, 'description', e.target.value)}
-                        placeholder="Description (optional)"
-                        className="text-sm"
-                        disabled={!item.product_type}
-                      />
-                    </div>
-
-                    {/* Save Indicator */}
-                    {item.product_id && (
-                      <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
-                        <Check size={14} />
-                        <span>Saved to catalog</span>
-                      </div>
-                    )}
                   </div>
+                ))}
+
+                {formData.items.length === 0 && (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    No items added yet. Click "Add Item" to get started.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Information</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Notes (Internal)
+                  </label>
+                  <textarea
+                    value={formData.notes || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    rows={3}
+                    className="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                    placeholder="Internal notes (not visible to customer)..."
+                  />
                 </div>
-              ))}
-
-              {formData.items.length === 0 && (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  No items added yet. Click "Add Item" to get started.
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Information</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Notes (Internal)
-                </label>
-                <textarea
-                  value={formData.notes || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  rows={3}
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
-                  placeholder="Internal notes (not visible to customer)..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Terms & Conditions
-                </label>
-                <textarea
-                  value={formData.terms || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, terms: e.target.value }))}
-                  rows={3}
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
-                  placeholder="Terms and conditions..."
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Invoice Details</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Invoice Date
-                </label>
-                <Input
-                  type="date"
-                  value={formData.invoice_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, invoice_date: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Due Date
-                </label>
-                <Input
-                  type="date"
-                  value={formData.due_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Payment Terms
-                </label>
-                <Input
-                  type="text"
-                  value={formData.payment_terms || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, payment_terms: e.target.value }))}
-                  placeholder="Net 30"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Summary</h2>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  ${formData.subtotal.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Discount</span>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    value={formData.discount_amount}
-                    onChange={(e) => {
-                      const discount = parseFloat(e.target.value) || 0;
-                      setFormData(prev => ({ ...prev, discount_amount: discount }));
-                      calculateTotals(formData.items);
-                    }}
-                    className="w-24 text-sm"
-                    min="0"
-                    step="0.01"
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Terms & Conditions
+                  </label>
+                  <textarea
+                    value={formData.terms || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, terms: e.target.value }))}
+                    rows={3}
+                    className="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                    placeholder="Terms and conditions..."
                   />
                 </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Tax</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  ${formData.tax_amount.toFixed(2)}
-                </span>
-              </div>
-              <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex justify-between">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">Total</span>
-                  <span className="text-lg font-bold text-blue-600">
-                    ${formData.total_amount.toFixed(2)}
-                  </span>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Invoice Details</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Invoice Date
+                  </label>
+                  <Input
+                    type="date"
+                    value={formData.invoice_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, invoice_date: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Due Date
+                  </label>
+                  <Input
+                    type="date"
+                    value={formData.due_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Payment Terms
+                  </label>
+                  <Input
+                    type="text"
+                    value={formData.payment_terms || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, payment_terms: e.target.value }))}
+                    placeholder="Net 30"
+                  />
                 </div>
               </div>
-              {formData.amount_paid > 0 && (
-                <>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Amount Paid</span>
-                    <span className="font-medium text-green-600">
-                      ${formData.amount_paid.toFixed(2)}
-                    </span>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Summary</h2>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    ${formData.subtotal.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Discount</span>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={formData.discount_amount}
+                      onChange={(e) => {
+                        const discount = parseFloat(e.target.value) || 0;
+                        setFormData(prev => ({ ...prev, discount_amount: discount }));
+                        calculateTotals(formData.items);
+                      }}
+                      className="w-24 text-sm"
+                      min="0"
+                      step="0.01"
+                    />
                   </div>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Tax</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    ${formData.tax_amount.toFixed(2)}
+                  </span>
+                </div>
+                <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex justify-between">
-                    <span className="font-semibold text-gray-900 dark:text-white">Amount Due</span>
-                    <span className="font-bold text-orange-600">
-                      ${formData.amount_due.toFixed(2)}
+                    <span className="text-lg font-semibold text-gray-900 dark:text-white">Total</span>
+                    <span className="text-lg font-bold text-blue-600">
+                      ${formData.total_amount.toFixed(2)}
                     </span>
                   </div>
-                </>
-              )}
+                </div>
+                {formData.amount_paid > 0 && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Amount Paid</span>
+                      <span className="font-medium text-green-600">
+                        ${formData.amount_paid.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-gray-900 dark:text-white">Amount Due</span>
+                      <span className="font-bold text-orange-600">
+                        ${formData.amount_due.toFixed(2)}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {savedInvoice && currentOrganization && (
-        <ShareModal
-          isOpen={showShareModal}
-          onClose={() => setShowShareModal(false)}
-          documentType="invoice"
-          document={savedInvoice}
-          organizationId={currentOrganization.id}
-          userId={currentOrganization.id}
-          organizationInfo={{
-            name: currentOrganization.name,
-            address: currentOrganization.address || '',
-            phone: currentOrganization.phone || '',
-            email: currentOrganization.email || '',
-          }}
-          initialTab={shareModalTab}
+        {savedInvoice && currentOrganization && (
+          <ShareModal
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            documentType="invoice"
+            document={savedInvoice}
+            organizationId={currentOrganization.id}
+            userId={currentOrganization.id}
+            organizationInfo={{
+              name: currentOrganization.name,
+              address: currentOrganization.address || '',
+              phone: currentOrganization.phone || '',
+              email: currentOrganization.email || '',
+            }}
+            initialTab={shareModalTab}
+          />
+        )}
+
+        <QuickAddCustomerModal
+          isOpen={showQuickAddCustomer}
+          onClose={() => setShowQuickAddCustomer(false)}
+          onCustomerCreated={handleCustomerCreated}
         />
-      )}
 
-      <QuickAddCustomerModal
-        isOpen={showQuickAddCustomer}
-        onClose={() => setShowQuickAddCustomer(false)}
-        onCustomerCreated={handleCustomerCreated}
-      />
+        <CreationSuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          title="Invoice Created!"
+          subtitle="Your invoice has been saved successfully"
+          itemName={formData.customer_name}
+          itemNumber={savedInvoice?.invoice_number}
+          actions={[
+            {
+              label: 'Back to All Invoices',
+              path: '/invoices',
+              icon: <ArrowLeft className="w-4 h-4" />,
+              variant: 'primary'
+            },
+            {
+              label: 'View Customer Profile',
+              path: `/customers/${formData.customer_id}`,
+              icon: <User className="w-4 h-4" />,
+              variant: 'secondary'
+            }
+          ]}
+        />
       </div>
     </div>
   );

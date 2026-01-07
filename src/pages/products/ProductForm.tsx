@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
-  ArrowLeft, Save, Package, DollarSign, BarChart, Tag,
+  ArrowLeft, Save, Package, DollarSign, Tag,
   Upload, X, AlertCircle
 } from 'lucide-react';
 import { useProductStore } from '@/stores/productStore';
 import { useOrganizationStore } from '@/stores/organizationStore';
 import toast from 'react-hot-toast';
 import type { ProductType, PricingModel, RecurringInterval } from '@/types/app.types';
+import CreationSuccessModal from '@/components/shared/CreationSuccessModal';
+import { Plus } from 'lucide-react';
 
 export default function ProductForm() {
   const navigate = useNavigate();
@@ -20,6 +22,8 @@ export default function ProductForm() {
   const isDuplicate = Boolean(location.state?.duplicate);
 
   const [saving, setSaving] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdProduct, setCreatedProduct] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -118,11 +122,18 @@ export default function ProductForm() {
       if (isEdit && id) {
         await updateProduct(id, productData);
         toast.success('Product updated successfully');
+        navigate('/products');
       } else {
-        await createProduct(productData);
-        toast.success('Product created successfully');
+        const newProduct = await createProduct(productData);
+        if (newProduct) {
+          setCreatedProduct(newProduct);
+          toast.success('Product created successfully');
+          setShowSuccessModal(true);
+        } else {
+          // Fallback if no product returned (e.g. optimistic update didn't return id)
+          navigate('/products');
+        }
       }
-      navigate('/products');
     } catch (error) {
       console.error('Error saving product:', error);
       toast.error('Failed to save product');
@@ -188,7 +199,7 @@ export default function ProductForm() {
 
       {/* Form */}
       <div className="flex-1 overflow-y-auto p-6">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+        <form onSubmit={handleSubmit} className="max-w-[1600px] mx-auto space-y-6">
           {/* Basic Information */}
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
@@ -212,11 +223,10 @@ export default function ProductForm() {
                       key={type.value}
                       type="button"
                       onClick={() => setFormData({ ...formData, product_type: type.value as ProductType })}
-                      className={`p-4 border-2 rounded-lg text-left transition-all ${
-                        formData.product_type === type.value
-                          ? 'border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                      }`}
+                      className={`p-4 border-2 rounded-lg text-left transition-all ${formData.product_type === type.value
+                        ? 'border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
                     >
                       <p className="font-medium text-gray-900 dark:text-white mb-1">{type.label}</p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">{type.desc}</p>
@@ -742,6 +752,33 @@ export default function ProductForm() {
           </div>
         </form>
       </div>
+      <CreationSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title={`${formData.product_type === 'service' ? 'Service' : 'Product'} Created!`}
+        subtitle={`Your ${formData.product_type} has been added to the catalog`}
+        itemName={createdProduct?.name || formData.name}
+        actions={[
+          {
+            label: 'Back to Catalog',
+            path: '/products',
+            icon: <ArrowLeft className="w-4 h-4" />,
+            variant: 'primary'
+          },
+          {
+            label: `View ${formData.product_type === 'service' ? 'Service' : 'Product'} Details`,
+            path: `/products/${createdProduct?.id}`,
+            icon: <Package className="w-4 h-4" />,
+            variant: 'secondary'
+          },
+          {
+            label: 'Add Another',
+            path: '/products/new',
+            icon: <Plus className="w-4 h-4" />,
+            variant: 'secondary'
+          }
+        ]}
+      />
     </div>
   );
 }

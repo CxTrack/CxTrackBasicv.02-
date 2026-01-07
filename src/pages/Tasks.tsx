@@ -135,7 +135,11 @@ const mockTasks: Task[] = [
   },
 ];
 
-export default function Tasks() {
+interface TasksProps {
+  embedded?: boolean;
+}
+
+export default function Tasks({ embedded = false }: TasksProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
@@ -271,31 +275,50 @@ export default function Tasks() {
 
   const { theme } = useThemeStore();
 
+  const containerClass = embedded
+    ? ''
+    : `min-h-screen ${theme === 'soft-modern' ? 'bg-soft-cream' : 'bg-gray-50 dark:bg-gray-950'}`;
+
+  const innerClass = embedded
+    ? ''
+    : 'p-4 sm:p-6 lg:p-8';
+
+  const cardOuterClass = embedded
+    ? ''
+    : 'max-w-[1920px] mx-auto';
+
+  const cardClass = embedded
+    ? ''
+    : theme === 'soft-modern' ? 'card p-8 mb-6' : 'bg-white dark:bg-gray-800 rounded-2xl p-6 lg:p-8 border-2 border-gray-200 dark:border-gray-700 mb-6';
+
   return (
     <>
-      <div className={`min-h-screen ${theme === 'soft-modern' ? 'bg-soft-cream' : 'bg-gray-50 dark:bg-gray-950'}`}>
-        <div className="p-4 sm:p-6 lg:p-8">
-          <div className="max-w-[1920px] mx-auto">
-            <div className={theme === 'soft-modern' ? 'card p-8 mb-6' : 'bg-white dark:bg-gray-800 rounded-2xl p-6 lg:p-8 border-2 border-gray-200 dark:border-gray-700 mb-6'}>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">Tasks</h1>
-                  <p className="text-slate-600 dark:text-gray-400 mt-1">Manage your tasks and to-dos</p>
+      <div className={containerClass}>
+        <div className={innerClass}>
+          <div className={cardOuterClass}>
+            <div className={cardClass}>
+              {!embedded && (
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">Tasks</h1>
+                    <p className="text-slate-600 dark:text-gray-400 mt-1">Manage your tasks and to-dos</p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setSelectedTask(null);
+                      setShowTaskModal(true);
+                    }}
+                    className={theme === 'soft-modern' ? 'btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all' : 'flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors'}
+                  >
+                    <Plus size={18} />
+                    New Task
+                  </button>
                 </div>
+              )}
 
-                <button
-                  onClick={() => {
-                    setSelectedTask(null);
-                    setShowTaskModal(true);
-                  }}
-                  className={theme === 'soft-modern' ? 'btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all' : 'flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors'}
-                >
-                  <Plus size={18} />
-                  New Task
-                </button>
-              </div>
+              <div className="flex items-center gap-4 mb-4">
 
-              <div className="flex items-center gap-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" size={18} />
                   <input
@@ -615,8 +638,8 @@ export default function Tasks() {
                                 handleSelectTask(task.id);
                               }}
                               className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${selectedTasks.has(task.id)
-                                  ? 'bg-blue-600 border-blue-600 text-white'
-                                  : 'border-gray-300 dark:border-gray-600'
+                                ? 'bg-blue-600 border-blue-600 text-white'
+                                : 'border-gray-300 dark:border-gray-600'
                                 }`}
                             >
                               {selectedTasks.has(task.id) && <CheckCircle2 size={12} />}
@@ -626,7 +649,7 @@ export default function Tasks() {
                             </h3>
                           </div>
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${task.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
-                              task.status === 'In Progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                            task.status === 'In Progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
                             }`}>
                             {task.status}
                           </span>
@@ -659,8 +682,8 @@ export default function Tasks() {
                           <button
                             onClick={(e) => { e.stopPropagation(); updateTaskStatus(task.id, task.status === 'Completed' ? 'To Do' : 'Completed'); }}
                             className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${task.status === 'Completed'
-                                ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                                : 'bg-emerald-600 text-white'
+                              ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                              : 'bg-emerald-600 text-white'
                               }`}>
                             {task.status === 'Completed' ? 'Mark Incomplete' : 'Complete Task'}
                           </button>

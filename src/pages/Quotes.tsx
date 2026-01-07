@@ -152,8 +152,8 @@ export default function Quotes() {
   }
 
   return (
-    <PageContainer className="gap-4">
-      <div className="flex items-center justify-between mb-6">
+    <PageContainer className="gap-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Sales Quotes
@@ -171,8 +171,8 @@ export default function Quotes() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card hover className="flex items-center gap-4 p-4 group h-28">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card hover className="flex items-center gap-4 p-4 group h-24">
           <IconBadge
             icon={<DollarSign size={20} className="text-blue-600" />}
             gradient="bg-blue-50"
@@ -185,7 +185,7 @@ export default function Quotes() {
           <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
         </Card>
 
-        <Card hover className="flex items-center gap-4 p-4 group h-28">
+        <Card hover className="flex items-center gap-4 p-4 group h-24">
           <IconBadge
             icon={<Clock size={20} className="text-amber-600" />}
             gradient="bg-amber-50"
@@ -198,7 +198,7 @@ export default function Quotes() {
           <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
         </Card>
 
-        <Card hover className="flex items-center gap-4 p-4 group h-28">
+        <Card hover className="flex items-center gap-4 p-4 group h-24">
           <IconBadge
             icon={<Target size={20} className="text-emerald-600" />}
             gradient="bg-emerald-50"
@@ -211,7 +211,7 @@ export default function Quotes() {
           <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
         </Card>
 
-        <Card hover className="flex items-center gap-4 p-4 group h-28">
+        <Card hover className="flex items-center gap-4 p-4 group h-24">
           <IconBadge
             icon={<Zap size={20} className="text-purple-600" />}
             gradient="bg-purple-50"
@@ -225,7 +225,7 @@ export default function Quotes() {
         </Card>
       </div>
 
-      <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4 bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-gray-700">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-gray-700">
         <div className="flex bg-slate-100 dark:bg-gray-700 p-1 rounded-lg overflow-x-auto scrollbar-hide">
           {(['all', 'draft', 'sent', 'accepted', 'declined'] as const).map((status) => (
             <button

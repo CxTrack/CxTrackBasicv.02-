@@ -232,8 +232,8 @@ export default function Invoices() {
   }
 
   return (
-    <PageContainer className="gap-4">
-      <div className="flex items-center justify-between mb-6">
+    <PageContainer className="gap-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Financial Center
@@ -242,19 +242,17 @@ export default function Invoices() {
             Generate invoices, track receivables, and manage billing
           </p>
         </div>
-        {(currentMembership?.role === 'owner' || currentMembership?.role === 'admin') && (
-          <Link
-            to="/invoices/builder"
-            className="flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium shadow-sm active:scale-95"
-          >
-            <Plus size={18} className="mr-2" />
-            New Invoice
-          </Link>
-        )}
+        <Link
+          to="/invoices/builder"
+          className="flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium shadow-sm active:scale-95"
+        >
+          <Plus size={18} className="mr-2" />
+          New Invoice
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card hover className="flex items-center gap-4 p-4 group h-28">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card hover className="flex items-center gap-4 p-4 group h-24">
           <IconBadge
             icon={<Wallet size={20} className="text-blue-600" />}
             gradient="bg-blue-50"
@@ -267,7 +265,7 @@ export default function Invoices() {
           <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
         </Card>
 
-        <Card hover className="flex items-center gap-4 p-4 group h-28">
+        <Card hover className="flex items-center gap-4 p-4 group h-24">
           <IconBadge
             icon={<CreditCard size={20} className="text-emerald-600" />}
             gradient="bg-emerald-50"
@@ -280,7 +278,7 @@ export default function Invoices() {
           <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
         </Card>
 
-        <Card hover className="flex items-center gap-4 p-4 group h-28">
+        <Card hover className="flex items-center gap-4 p-4 group h-24">
           <IconBadge
             icon={<Clock size={20} className="text-orange-600" />}
             gradient="bg-orange-50"
@@ -293,7 +291,7 @@ export default function Invoices() {
           <ArrowRight size={16} className="ml-auto text-slate-300 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
         </Card>
 
-        <Card hover className="flex items-center gap-4 p-4 group h-28">
+        <Card hover className="flex items-center gap-4 p-4 group h-24">
           <IconBadge
             icon={<AlertCircle size={20} className="text-rose-600" />}
             gradient="bg-rose-50"
@@ -307,7 +305,7 @@ export default function Invoices() {
         </Card>
       </div>
 
-      <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4 bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-gray-700">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-gray-700">
         <div className="flex bg-slate-100 dark:bg-gray-700 p-1 rounded-lg overflow-x-auto scrollbar-hide">
           {(['all', 'draft', 'sent', 'paid', 'overdue'] as const).map((status) => (
             <button

@@ -3,9 +3,10 @@ import { format, addMinutes } from 'date-fns';
 import { useCustomerStore } from '@/stores/customerStore';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useOrganizationStore } from '@/stores/organizationStore';
+import { useAuthContext } from '@/contexts/AuthContext';
 import {
-  X, Calendar, Clock, User, Mail, Phone, MapPin,
-  Video, FileText, Tag, Save, Users, Plus, Search, Check
+  X, Clock, Mail, Phone, MapPin,
+  Video, FileText, Save, Plus, Search, Check
 } from 'lucide-react';
 import { PhoneInput } from '../ui/PhoneInput';
 import TimePicker from '../shared/TimePicker';
@@ -31,7 +32,8 @@ const getTodayDate = () => {
 export default function EventModal({ isOpen, onClose, selectedDate, event }: EventModalProps) {
   const { customers, fetchCustomers, createCustomer } = useCustomerStore();
   const { createEvent, updateEvent, fetchEvents } = useCalendarStore();
-  const { currentOrganization } = useOrganizationStore();
+  const { currentOrganization, getOrganizationId } = useOrganizationStore();
+  const { user } = useAuthContext();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -67,7 +69,7 @@ export default function EventModal({ isOpen, onClose, selectedDate, event }: Eve
 
   useEffect(() => {
     if (isOpen && currentOrganization) {
-      fetchCustomers(currentOrganization.id);
+      fetchCustomers();
     }
   }, [isOpen, currentOrganization, fetchCustomers]);
 
@@ -79,15 +81,15 @@ export default function EventModal({ isOpen, onClose, selectedDate, event }: Eve
         start_time: format(new Date(event.start_time), 'HH:mm'),
         duration: Math.round((new Date(event.end_time).getTime() - new Date(event.start_time).getTime()) / 60000),
         customer_id: event.customer_id || '',
-        customer_name: event.attendee_name || '',
-        customer_email: event.attendee_email || '',
-        customer_phone: event.attendee_phone || '',
+        customer_name: event.attendees?.[0]?.name || '',
+        customer_email: event.attendees?.[0]?.email || '',
+        customer_phone: '', // Phone not directly in attendees array object
         location: event.location || '',
         meeting_url: event.meeting_url || '',
         event_type: (event.event_type as any) || 'appointment',
-        color: event.color || '#6366f1',
+        color: event.color_code || '#6366f1',
         description: event.description || '',
-        reminder_minutes: event.reminder_minutes_before || 30
+        reminder_minutes: event.reminders?.[0]?.minutes || 30
       });
     } else {
       setFormData({
@@ -165,7 +167,10 @@ export default function EventModal({ isOpen, onClose, selectedDate, event }: Eve
       }
     }
 
-    if (!currentOrganization) {
+    let orgId;
+    try {
+      orgId = getOrganizationId();
+    } catch (err) {
       toast.error('No organization selected');
       return;
     }
@@ -174,8 +179,8 @@ export default function EventModal({ isOpen, onClose, selectedDate, event }: Eve
       // Construct full name based on category
       const fullName = newCustomer.customer_category === 'Personal'
         ? [newCustomer.first_name, newCustomer.middle_name, newCustomer.last_name]
-            .filter(Boolean)
-            .join(' ')
+          .filter(Boolean)
+          .join(' ')
         : newCustomer.business_name;
 
       const customer = await createCustomer({
@@ -188,7 +193,7 @@ export default function EventModal({ isOpen, onClose, selectedDate, event }: Eve
         phone: newCustomer.phone,
         status: 'Active',
         type: newCustomer.customer_category === 'Business' ? 'Business' : 'Individual',
-        organization_id: currentOrganization.id
+        organization_id: orgId
       });
 
       if (customer) {
@@ -228,7 +233,10 @@ export default function EventModal({ isOpen, onClose, selectedDate, event }: Eve
       return;
     }
 
-    if (!currentOrganization) {
+    let orgId;
+    try {
+      orgId = getOrganizationId();
+    } catch (err) {
       toast.error('No organization selected');
       return;
     }
@@ -251,28 +259,38 @@ export default function EventModal({ isOpen, onClose, selectedDate, event }: Eve
       const endDateTime = addMinutes(startDateTime, formData.duration);
 
       const eventData = {
-        organization_id: currentOrganization.id,
+        organization_id: orgId,
+        user_id: event?.user_id || orgId, // Fallback to orgId as user_id if missing for demo/mock
         title: formData.title,
         description: formData.description,
         start_time: startDateTime.toISOString(),
         end_time: endDateTime.toISOString(),
         customer_id: formData.customer_id || null,
-        attendee_name: formData.customer_name || null,
-        attendee_email: formData.customer_email || null,
-        attendee_phone: formData.customer_phone || null,
+        attendees: formData.customer_email ? [{
+          name: formData.customer_name,
+          email: formData.customer_email
+        }] : [],
         location: formData.location || null,
         meeting_url: formData.meeting_url || null,
-        event_type: formData.event_type,
-        color: formData.color,
-        reminder_minutes_before: formData.reminder_minutes,
-        status: 'scheduled' as const
+        event_type: formData.event_type as any,
+        color_code: formData.color,
+        reminders: formData.reminder_minutes > 0 ? [{
+          minutes: formData.reminder_minutes,
+          method: 'email'
+        }] : [],
+        status: 'scheduled' as const,
+        cal_com_event_id: event?.cal_com_event_id || null,
+        is_recurring: event?.is_recurring || false,
+        recurrence_rule: event?.recurrence_rule || null,
+        metadata: event?.metadata || {},
+        created_by: event?.created_by || user?.id || null
       };
 
       if (event) {
         console.log('💾 Updating event with data:', eventData);
         await updateEvent(event.id, eventData);
         console.log('🔄 Refreshing calendar...');
-        await fetchEvents(currentOrganization.id);
+        await fetchEvents(orgId);
         toast.success('Event updated successfully');
       } else {
         await createEvent(eventData);
@@ -449,22 +467,20 @@ export default function EventModal({ isOpen, onClose, selectedDate, event }: Eve
                     <button
                       type="button"
                       onClick={() => setNewCustomer({ ...newCustomer, customer_category: 'Personal' })}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        newCustomer.customer_category === 'Personal'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-500'
-                      }`}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${newCustomer.customer_category === 'Personal'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-500'
+                        }`}
                     >
                       Personal
                     </button>
                     <button
                       type="button"
                       onClick={() => setNewCustomer({ ...newCustomer, customer_category: 'Business' })}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        newCustomer.customer_category === 'Business'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-500'
-                      }`}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${newCustomer.customer_category === 'Business'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-500'
+                        }`}
                     >
                       Business
                     </button>
@@ -650,11 +666,10 @@ export default function EventModal({ isOpen, onClose, selectedDate, event }: Eve
                   key={color}
                   type="button"
                   onClick={() => setFormData({ ...formData, color })}
-                  className={`w-10 h-10 rounded-lg transition-all hover:scale-110 ${
-                    formData.color === color
-                      ? 'ring-2 ring-offset-2 ring-gray-900 dark:ring-white scale-110'
-                      : 'hover:opacity-80'
-                  }`}
+                  className={`w-10 h-10 rounded-lg transition-all hover:scale-110 ${formData.color === color
+                    ? 'ring-2 ring-offset-2 ring-gray-900 dark:ring-white scale-110'
+                    : 'hover:opacity-80'
+                    }`}
                   style={{ backgroundColor: color }}
                   title={color}
                 />

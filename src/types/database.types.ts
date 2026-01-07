@@ -424,3 +424,51 @@ export interface TaskFormData {
   due_date?: string;
   priority?: TaskPriority;
 }
+
+export interface Lead {
+  id: string;
+  organization_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  title: string | null;
+  source: string | null;
+  status: 'new' | 'contacted' | 'nurturing' | 'qualified' | 'dead';
+  lead_score: number;
+  potential_value: number;
+  probability: number;
+  assigned_to: string | null;
+  last_contact_date: string | null;
+  next_follow_up: string | null;
+  notes: string | null;
+  converted_to_opportunity_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Opportunity {
+  id: string;
+  organization_id: string;
+  lead_id: string | null;
+  customer_id: string | null;
+  name: string;
+  description: string | null;
+  stage: 'discovery' | 'demo_scheduled' | 'proposal' | 'negotiation' | 'won' | 'lost';
+  value: number;
+  probability: number;
+  weighted_value: number;
+  expected_close_date: string | null;
+  actual_close_date: string | null;
+  appointment_date: string | null;
+  assigned_to: string | null;
+  quote_id: string | null;
+  invoice_id: string | null;
+  lost_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joins
+  leads?: Lead | null;
+  customers?: Customer | null;
+}
+

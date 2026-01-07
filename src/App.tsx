@@ -20,7 +20,7 @@ import InvoiceBuilder from './pages/invoices/InvoiceBuilder';
 import InvoiceDetail from './pages/invoices/InvoiceDetail';
 import Settings from './pages/settings/Settings';
 import Calls from './pages/calls/Calls';
-import Pipeline from './pages/Pipeline';
+import CRM from './pages/CRM';
 import PublicQuoteView from './pages/share/PublicQuoteView';
 import PublicInvoiceView from './pages/share/PublicInvoiceView';
 import CoPilotButton from './components/copilot/CoPilotButton';
@@ -62,7 +62,8 @@ function App() {
                 <Route path="tasks" element={<Tasks />} />
                 <Route path="calls" element={<Calls />} />
                 <Route path="calls/:callId" element={<CallDetail />} />
-                <Route path="pipeline" element={<Pipeline />} />
+                <Route path="crm" element={<CRM />} />
+                <Route path="pipeline" element={<CRM />} />
                 <Route path="products" element={<Products />} />
                 <Route path="products/new" element={<ProductForm />} />
                 <Route path="products/:id/edit" element={<ProductForm />} />

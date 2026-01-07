@@ -81,6 +81,12 @@ export interface Product {
   low_stock_threshold?: number;
   is_active: boolean;
   requires_approval: boolean;
+  weight?: number;
+  dimensions?: string;
+  estimated_duration?: number;
+  duration_unit?: string;
+  deliverables?: string;
+  discount_type?: string;
   image_url?: string;
   custom_fields?: Record<string, any>;
   created_at: string;

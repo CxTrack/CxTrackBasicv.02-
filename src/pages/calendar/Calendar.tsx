@@ -36,16 +36,20 @@ export default function Calendar() {
   const [selectedTask, setSelectedTask] = useState<any>(null);
 
   const { events, fetchEvents, updateEvent } = useCalendarStore();
-  const { currentOrganization } = useOrganizationStore();
+  const { currentOrganization, getOrganizationId } = useOrganizationStore();
   const { fetchTasks, getTasksByDate } = useTaskStore();
   const { theme } = useThemeStore();
 
   useEffect(() => {
-    if (currentOrganization) {
-      fetchEvents(currentOrganization.id);
+    let orgId;
+    try {
+      orgId = getOrganizationId();
+    } catch (err) {
+      // Ignore if no org yet
     }
+    fetchEvents(orgId);
     fetchTasks();
-  }, [currentOrganization, fetchEvents, fetchTasks]);
+  }, [currentOrganization, fetchEvents, fetchTasks, getOrganizationId]);
 
   const getEventsForDate = (date: Date) => {
     return events.filter(event =>
@@ -430,7 +434,9 @@ export default function Calendar() {
           onClose={() => {
             setShowEventModal(false);
             setSelectedEvent(null);
-            fetchEvents(currentOrganization?.id);
+            let orgId;
+            try { orgId = getOrganizationId(); } catch (err) { }
+            fetchEvents(orgId);
           }}
           selectedDate={selectedDate}
         />
@@ -446,7 +452,9 @@ export default function Calendar() {
           }}
           onUpdate={async (id, data) => {
             await updateEvent(id, data);
-            fetchEvents(currentOrganization?.id);
+            let orgId;
+            try { orgId = getOrganizationId(); } catch (err) { }
+            fetchEvents(orgId);
           }}
         />
       )}
