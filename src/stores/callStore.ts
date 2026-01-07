@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { Call } from '@/types/database.types';
 import { useOrganizationStore } from './organizationStore';
+import { DEMO_MODE, DEMO_STORAGE_KEYS, loadDemoData } from '@/config/demo.config';
 
 interface CallFilters {
   dateRange?: { start: Date; end: Date };
@@ -48,7 +49,7 @@ interface CallStore {
 }
 
 export const useCallStore = create<CallStore>((set, get) => ({
-  calls: [],
+  calls: DEMO_MODE ? loadDemoData<Call>(DEMO_STORAGE_KEYS.calls) : [],
   currentCall: null,
   loading: false,
   error: null,
@@ -56,6 +57,12 @@ export const useCallStore = create<CallStore>((set, get) => ({
   stats: null,
 
   fetchCalls: async () => {
+    if (DEMO_MODE) {
+      const calls = loadDemoData<Call>(DEMO_STORAGE_KEYS.calls);
+      set({ calls, loading: false });
+      return;
+    }
+
     const organizationId = useOrganizationStore.getState().currentOrganization?.id;
     if (!organizationId) return;
 
@@ -266,11 +273,11 @@ export const useCallStore = create<CallStore>((set, get) => ({
 
   subscribeToLiveCalls: () => {
     const organizationId = useOrganizationStore.getState().currentOrganization?.id;
-    if (!organizationId) return () => {};
+    if (!organizationId) return () => { };
 
     if (!supabase || typeof supabase.channel !== 'function') {
       console.log('Supabase realtime not available, skipping subscription');
-      return () => {};
+      return () => { };
     }
 
     try {
@@ -311,7 +318,7 @@ export const useCallStore = create<CallStore>((set, get) => ({
       };
     } catch (error) {
       console.error('Error subscribing to calls:', error);
-      return () => {};
+      return () => { };
     }
   },
 }));

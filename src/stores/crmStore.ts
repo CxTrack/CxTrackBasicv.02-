@@ -2,7 +2,38 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { useOrganizationStore } from './organizationStore';
 import { Lead, Opportunity } from '@/types/database.types';
+import { DEMO_MODE } from '@/config/demo.config';
 import toast from 'react-hot-toast';
+
+// Demo storage keys
+const DEMO_LEADS_KEY = 'cxtrack_demo_leads';
+const DEMO_OPPORTUNITIES_KEY = 'cxtrack_demo_opportunities';
+
+const loadDemoLeads = (): Lead[] => {
+    try {
+        const stored = localStorage.getItem(DEMO_LEADS_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        return [];
+    }
+};
+
+const loadDemoOpportunities = (): Opportunity[] => {
+    try {
+        const stored = localStorage.getItem(DEMO_OPPORTUNITIES_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        return [];
+    }
+};
+
+const saveDemoLeads = (leads: Lead[]) => {
+    localStorage.setItem(DEMO_LEADS_KEY, JSON.stringify(leads));
+};
+
+const saveDemoOpportunities = (opportunities: Opportunity[]) => {
+    localStorage.setItem(DEMO_OPPORTUNITIES_KEY, JSON.stringify(opportunities));
+};
 
 interface CRMStore {
     leads: Lead[];
@@ -26,11 +57,17 @@ interface CRMStore {
 }
 
 export const useCRMStore = create<CRMStore>((set, get) => ({
-    leads: [],
-    opportunities: [],
+    leads: DEMO_MODE ? loadDemoLeads() : [],
+    opportunities: DEMO_MODE ? loadDemoOpportunities() : [],
     loading: false,
 
     fetchLeads: async () => {
+        if (DEMO_MODE) {
+            const leads = loadDemoLeads();
+            set({ leads, loading: false });
+            return;
+        }
+
         const currentOrg = useOrganizationStore.getState().currentOrganization;
         if (!currentOrg) return;
 
@@ -52,6 +89,12 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
     },
 
     fetchOpportunities: async () => {
+        if (DEMO_MODE) {
+            const opportunities = loadDemoOpportunities();
+            set({ opportunities, loading: false });
+            return;
+        }
+
         const currentOrg = useOrganizationStore.getState().currentOrganization;
         if (!currentOrg) return;
 

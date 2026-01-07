@@ -1,8 +1,14 @@
-import { Users, Activity, Database, Zap, Info } from 'lucide-react';
-import { LineChart, BarChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useState } from 'react';
+import { Download, TrendingUp, TrendingDown } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { HealthScoreCell } from '@/components/HealthScoreCell';
+import { FilterBar, CompactMetric, CompactMetricBar } from '@/components/shared/FilterBar';
+import { ReportGenerator, ExportButton } from '@/components/reports/ReportGenerator';
 
 export const AnalyticsTab = () => {
+    const [dateRange, setDateRange] = useState('30d');
+    const [orgFilter, setOrgFilter] = useState('all');
+    const [showReportModal, setShowReportModal] = useState(false);
 
     const userGrowthData = [
         { month: 'Jan', users: 1200 },
@@ -23,215 +29,125 @@ export const AnalyticsTab = () => {
     ];
 
     const orgMetrics = [
-        {
-            id: '1',
-            name: 'Acme Corp',
-            active_users: 45,
-            total_users: 50,
-            api_calls_30d: 125000,
-            storage_gb: 45.2,
-            calls_made: 120,
-            revenue: 2500,
-            subscription_status: 'active',
-            open_tickets: 1,
-            features_used: ['invoices', 'quotes', 'calls', 'pipeline', 'tasks'],
-            last_login_days_ago: 0,
-            payment_failures: 0,
-            error_rate: 0.3,
-        },
-        {
-            id: '2',
-            name: 'Globex Inc',
-            active_users: 120,
-            total_users: 150,
-            api_calls_30d: 450000,
-            storage_gb: 128.5,
-            calls_made: 850,
-            revenue: 5500,
-            subscription_status: 'active',
-            open_tickets: 2,
-            features_used: ['invoices', 'quotes', 'calls', 'pipeline'],
-            last_login_days_ago: 1,
-            payment_failures: 0,
-            error_rate: 0.5,
-        },
-        {
-            id: '3',
-            name: 'Soylent Corp',
-            active_users: 8,
-            total_users: 12,
-            api_calls_30d: 5000,
-            storage_gb: 5.2,
-            calls_made: 20,
-            revenue: 450,
-            subscription_status: 'past_due',
-            open_tickets: 6,
-            features_used: ['invoices'],
-            last_login_days_ago: 15,
-            payment_failures: 2,
-            error_rate: 3.2,
-        },
-        {
-            id: '4',
-            name: 'Initech',
-            active_users: 85,
-            total_users: 100,
-            api_calls_30d: 210000,
-            storage_gb: 65.8,
-            calls_made: 340,
-            revenue: 3500,
-            subscription_status: 'active',
-            open_tickets: 0,
-            features_used: ['invoices', 'quotes', 'calls', 'tasks'],
-            last_login_days_ago: 0,
-            payment_failures: 0,
-            error_rate: 0.2,
-        },
-        {
-            id: '5',
-            name: 'Umbrella Corp',
-            active_users: 200,
-            total_users: 250,
-            api_calls_30d: 890000,
-            storage_gb: 450.2,
-            calls_made: 1200,
-            revenue: 12000,
-            subscription_status: 'active',
-            open_tickets: 3,
-            features_used: ['invoices', 'quotes', 'calls'],
-            last_login_days_ago: 2,
-            payment_failures: 1,
-            error_rate: 1.1,
-        }
+        { id: '1', name: 'Acme Corp', active_users: 45, total_users: 50, api_calls_30d: 125000, storage_gb: 45.2, calls_made: 120, revenue: 2500, subscription_status: 'active', open_tickets: 1, features_used: ['invoices', 'quotes', 'calls', 'pipeline', 'tasks'], last_login_days_ago: 0, payment_failures: 0, error_rate: 0.3, trend: 12 },
+        { id: '2', name: 'Globex Inc', active_users: 120, total_users: 150, api_calls_30d: 450000, storage_gb: 128.5, calls_made: 850, revenue: 5500, subscription_status: 'active', open_tickets: 2, features_used: ['invoices', 'quotes', 'calls', 'pipeline'], last_login_days_ago: 1, payment_failures: 0, error_rate: 0.5, trend: 8 },
+        { id: '3', name: 'Soylent Corp', active_users: 8, total_users: 12, api_calls_30d: 5000, storage_gb: 5.2, calls_made: 20, revenue: 450, subscription_status: 'past_due', open_tickets: 6, features_used: ['invoices'], last_login_days_ago: 15, payment_failures: 2, error_rate: 3.2, trend: -15 },
+        { id: '4', name: 'Initech', active_users: 85, total_users: 100, api_calls_30d: 210000, storage_gb: 65.8, calls_made: 340, revenue: 3500, subscription_status: 'active', open_tickets: 0, features_used: ['invoices', 'quotes', 'calls', 'tasks'], last_login_days_ago: 0, payment_failures: 0, error_rate: 0.2, trend: 5 },
+        { id: '5', name: 'Umbrella Corp', active_users: 200, total_users: 250, api_calls_30d: 890000, storage_gb: 450.2, calls_made: 1200, revenue: 12000, subscription_status: 'active', open_tickets: 3, features_used: ['invoices', 'quotes', 'calls'], last_login_days_ago: 2, payment_failures: 1, error_rate: 1.1, trend: 22 },
     ];
 
+    const orgOptions = orgMetrics.map(org => ({ value: org.id, label: org.name }));
+
+    const handleExport = (format: string) => {
+        console.log(`Exporting analytics as ${format}`);
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
+            {/* Compact Header with Filters */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+                <FilterBar
+                    dateRange={{ value: dateRange, onChange: setDateRange }}
+                    filters={[
+                        { id: 'org', label: 'Organization', options: orgOptions, value: orgFilter, onChange: setOrgFilter },
+                    ]}
+                    onClearAll={() => { setDateRange('30d'); setOrgFilter('all'); }}
+                >
+                    <button
+                        onClick={() => setShowReportModal(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white 
+              bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                    >
+                        <Download className="w-3.5 h-3.5" />
+                        Generate Report
+                    </button>
+                </FilterBar>
 
-            {/* Top Metrics */}
-            <div className="grid grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6 border-2 border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                            <Users className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-green-600 text-sm font-semibold">↑ 12%</span>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Active Users</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">2,543</p>
-                    <p className="text-xs text-gray-500 mt-2">+289 this month</p>
-                </div>
-
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6 border-2 border-purple-200 dark:border-purple-800">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center">
-                            <Zap className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-green-600 text-sm font-semibold">↑ 8%</span>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">API Requests / min</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">45.2k</p>
-                    <p className="text-xs text-gray-500 mt-2">Peak: 78k/min</p>
-                </div>
-
-                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-6 border-2 border-green-200 dark:border-green-800">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
-                            <Activity className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-red-600 text-sm font-semibold">↓ 2%</span>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">System Uptime</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">99.9%</p>
-                    <p className="text-xs text-gray-500 mt-2">Last 30 days</p>
-                </div>
-
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border-2 border-orange-200 dark:border-orange-800">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center">
-                            <Database className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-green-600 text-sm font-semibold">↑ 5%</span>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Storage Used</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">234 GB</p>
-                    <p className="text-xs text-gray-500 mt-2">Of 1 TB total</p>
-                </div>
+                {/* Compact Metrics Row */}
+                <CompactMetricBar className="mt-3">
+                    <CompactMetric label="Users" value="2,543" change={{ value: 12, isPositive: true }} />
+                    <CompactMetric label="API/min" value="45.2k" change={{ value: 8, isPositive: true }} />
+                    <CompactMetric label="Uptime" value="99.9%" change={{ value: 2, isPositive: false }} />
+                    <CompactMetric label="Storage" value="234 GB" change={{ value: 5, isPositive: true }} />
+                    <CompactMetric label="Revenue" value="$68.4k" change={{ value: 15, isPositive: true }} />
+                </CompactMetricBar>
             </div>
 
-            {/* Charts Row */}
-            <div className="grid grid-cols-2 gap-6">
-
-                {/* User Growth Chart */}
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">User Growth</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={userGrowthData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis dataKey="month" stroke="#6b7280" />
-                            <YAxis stroke="#6b7280" />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff' }}
-                                itemStyle={{ color: '#fff' }}
-                            />
-                            <Line type="monotone" dataKey="users" stroke="#8b5cf6" strokeWidth={3} />
-                        </LineChart>
+            {/* Charts Row - Reduced Height */}
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">User Growth</h3>
+                        <ExportButton onExport={handleExport} size="sm" />
+                    </div>
+                    <ResponsiveContainer width="100%" height={180}>
+                        <AreaChart data={userGrowthData}>
+                            <defs>
+                                <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                            <XAxis dataKey="month" stroke="#6b7280" tick={{ fontSize: 11 }} />
+                            <YAxis stroke="#6b7280" tick={{ fontSize: 11 }} width={40} />
+                            <Tooltip contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff', fontSize: 12 }} />
+                            <Area type="monotone" dataKey="users" stroke="#8b5cf6" strokeWidth={2} fill="url(#userGradient)" />
+                        </AreaChart>
                     </ResponsiveContainer>
                 </div>
 
-                {/* Revenue Chart */}
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Monthly Revenue</h3>
-                    <ResponsiveContainer width="100%" height={300}>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">Monthly Revenue</h3>
+                        <ExportButton onExport={handleExport} size="sm" />
+                    </div>
+                    <ResponsiveContainer width="100%" height={180}>
                         <BarChart data={revenueData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis dataKey="month" stroke="#6b7280" />
-                            <YAxis stroke="#6b7280" />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff' }}
-                                itemStyle={{ color: '#fff' }}
-                            />
-                            <Bar dataKey="revenue" fill="#10b981" radius={[8, 8, 0, 0]} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                            <XAxis dataKey="month" stroke="#6b7280" tick={{ fontSize: 11 }} />
+                            <YAxis stroke="#6b7280" tick={{ fontSize: 11 }} width={50} tickFormatter={(v) => `$${v / 1000}k`} />
+                            <Tooltip contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff', fontSize: 12 }} formatter={(v) => [`$${Number(v).toLocaleString()}`, 'Revenue']} />
+                            <Bar dataKey="revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
             </div>
 
-            {/* Detailed Stats Table */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Organization Metrics</h3>
+            {/* Organization Table - Compact */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">Organization Metrics</h3>
+                    <ExportButton onExport={handleExport} size="sm" />
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50 dark:bg-gray-800">
                             <tr>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Organization</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Active Users</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">API Calls (30d)</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Storage</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Calls Made</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Revenue</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
-                                    <div className="flex items-center gap-2">
-                                        Account Health
-                                        <Info className="w-4 h-4 text-gray-400" />
-                                    </div>
-                                </th>
+                                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Organization</th>
+                                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Users</th>
+                                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">API Calls</th>
+                                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Storage</th>
+                                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Revenue</th>
+                                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Trend</th>
+                                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Health</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {orgMetrics.map(org => (
                                 <tr key={org.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                    <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{org.name}</td>
-                                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.active_users}/{org.total_users}</td>
-                                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.api_calls_30d.toLocaleString()}</td>
-                                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.storage_gb} GB</td>
-                                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{org.calls_made}</td>
-                                    <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">${org.revenue}</td>
-                                    <td className="px-6 py-4">
-                                        <HealthScoreCell organization={org} />
+                                    <td className="px-4 py-2.5 font-medium text-sm text-gray-900 dark:text-white">{org.name}</td>
+                                    <td className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300">{org.active_users}/{org.total_users}</td>
+                                    <td className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300">{(org.api_calls_30d / 1000).toFixed(0)}k</td>
+                                    <td className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300">{org.storage_gb} GB</td>
+                                    <td className="px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-white">${org.revenue}</td>
+                                    <td className="px-4 py-2.5">
+                                        <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${org.trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {org.trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                                            {Math.abs(org.trend)}%
+                                        </span>
                                     </td>
+                                    <td className="px-4 py-2.5"><HealthScoreCell organization={org} /></td>
                                 </tr>
                             ))}
                         </tbody>
@@ -239,62 +155,51 @@ export const AnalyticsTab = () => {
                 </div>
             </div>
 
-            {/* Additional Metrics */}
-            <div className="grid grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-700 p-6">
-                    <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-4">Top Features Used</h4>
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Invoices</span>
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">8,432</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Quotes</span>
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">5,231</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">AI Calls</span>
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">3,891</span>
-                        </div>
+            {/* Bottom Stats - 3 Column Compact */}
+            <div className="grid grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-3">Top Features</h4>
+                    <div className="space-y-2">
+                        {[{ name: 'Invoices', value: '8,432' }, { name: 'Quotes', value: '5,231' }, { name: 'AI Calls', value: '3,891' }].map(f => (
+                            <div key={f.name} className="flex justify-between items-center">
+                                <span className="text-xs text-gray-600 dark:text-gray-400">{f.name}</span>
+                                <span className="text-xs font-bold text-gray-900 dark:text-white">{f.value}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-700 p-6">
-                    <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-4">Response Times</h4>
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">API p50</span>
-                            <span className="text-sm font-bold text-green-600">45ms</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">API p95</span>
-                            <span className="text-sm font-bold text-yellow-600">120ms</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">API p99</span>
-                            <span className="text-sm font-bold text-orange-600">280ms</span>
-                        </div>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-3">Response Times</h4>
+                    <div className="space-y-2">
+                        {[{ name: 'p50', value: '45ms', color: 'text-green-600' }, { name: 'p95', value: '120ms', color: 'text-yellow-600' }, { name: 'p99', value: '280ms', color: 'text-orange-600' }].map(r => (
+                            <div key={r.name} className="flex justify-between items-center">
+                                <span className="text-xs text-gray-600 dark:text-gray-400">API {r.name}</span>
+                                <span className={`text-xs font-bold ${r.color}`}>{r.value}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-700 p-6">
-                    <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-4">Error Rates</h4>
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">4xx Errors</span>
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">0.12%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">5xx Errors</span>
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">0.03%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Success Rate</span>
-                            <span className="text-sm font-bold text-green-600">99.85%</span>
-                        </div>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-3">Error Rates</h4>
+                    <div className="space-y-2">
+                        {[{ name: '4xx Errors', value: '0.12%' }, { name: '5xx Errors', value: '0.03%' }, { name: 'Success', value: '99.85%', color: 'text-green-600' }].map(e => (
+                            <div key={e.name} className="flex justify-between items-center">
+                                <span className="text-xs text-gray-600 dark:text-gray-400">{e.name}</span>
+                                <span className={`text-xs font-bold ${e.color || 'text-gray-900 dark:text-white'}`}>{e.value}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
+
+            {/* Report Generator Modal */}
+            <ReportGenerator
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                defaultType="revenue"
+            />
         </div>
     );
 };

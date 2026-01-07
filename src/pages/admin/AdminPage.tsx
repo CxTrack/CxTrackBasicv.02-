@@ -12,7 +12,7 @@ import { SupportTab } from './SupportTab';
 import { SettingsTab } from './SettingsTab';
 import { AuditLogsTab } from './AuditLogsTab';
 import { DatabaseTab } from './DatabaseTab';
-import { AppleBroadcastPanel } from '../../components/admin/AppleBroadcastPanel';
+import { BroadcastPanel } from '../../components/admin/BroadcastPanel';
 // import { useThemeStore } from '@/stores/themeStore'; // Assuming this exists based on Dashboard.tsx
 
 export const AdminPage = () => {
@@ -27,7 +27,7 @@ export const AdminPage = () => {
         { id: 'settings', label: 'Settings', icon: Settings, component: SettingsTab },
         { id: 'audit', label: 'Audit Logs', icon: Shield, component: AuditLogsTab },
         { id: 'database', label: 'Database', icon: Database, component: DatabaseTab },
-        { id: 'broadcasts', label: 'Broadcasts', icon: Send, component: AppleBroadcastPanel },
+        { id: 'broadcasts', label: 'Broadcasts', icon: Send, component: BroadcastPanel },
     ];
 
     const ActiveComponent = tabs.find(t => t.id === activeTab)?.component || UsersTab;

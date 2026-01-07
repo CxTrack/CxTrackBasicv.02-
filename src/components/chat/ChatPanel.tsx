@@ -26,7 +26,7 @@ interface Conversation {
     }[];
 }
 
-export const AppleChatPanel = () => {
+export const ChatPanel = () => {
     const { user } = useAuthContext();
     const [isOpen, setIsOpen] = useState(false);
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -469,3 +469,6 @@ const formatTime = (date: string) => {
     if (diffDays < 7) return `${diffDays}d`;
     return messageDate.toLocaleDateString();
 };
+
+// Export legacy name for backwards compatibility
+export const AppleChatPanel = ChatPanel;

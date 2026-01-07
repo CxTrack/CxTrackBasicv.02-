@@ -12,7 +12,7 @@ interface Broadcast {
     created_at: string;
 }
 
-export const AppleBroadcastBanner = () => {
+export const BroadcastBanner = () => {
     const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
 
     useEffect(() => {
@@ -146,3 +146,6 @@ export const AppleBroadcastBanner = () => {
         </div>
     );
 };
+
+// Export legacy name for backwards compatibility
+export const AppleBroadcastBanner = BroadcastBanner;

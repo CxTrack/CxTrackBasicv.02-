@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Search, Plus, Filter, FileText, DollarSign,
+  Search, Plus, Filter, FileText, DollarSign, Download,
   Clock, MoreVertical,
   Archive, CheckCircle2, Trash2,
   ArrowRight, Target, Zap
@@ -13,6 +13,7 @@ import { PageContainer, Card, IconBadge } from '../components/theme/ThemeCompone
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import type { QuoteStatus } from '../types/app.types';
+import { ReportGenerator, ExportButton } from '../components/reports/ReportGenerator';
 
 export default function Quotes() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function Quotes() {
   const [filterStatus, setFilterStatus] = useState<'all' | QuoteStatus>('all');
   const [selectedQuotes, setSelectedQuotes] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const { quotes, loading, fetchQuotes, deleteQuote } = useQuoteStore();
   const { currentOrganization, demoMode, getOrganizationId, currentMembership } = useOrganizationStore();
@@ -162,13 +164,23 @@ export default function Quotes() {
             Draft proposals, track customer interest, and convert leads
           </p>
         </div>
-        <Link
-          to="/quotes/builder"
-          className="flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium shadow-sm active:scale-95"
-        >
-          <Plus size={18} className="mr-2" />
-          Create Quote
-        </Link>
+        <div className="flex items-center gap-2">
+          <ExportButton onExport={(format) => console.log(`Exporting quotes as ${format}`)} />
+          <button
+            onClick={() => setShowReportModal(true)}
+            className="flex items-center px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors font-medium text-sm"
+          >
+            <Download size={16} className="mr-1.5" />
+            Report
+          </button>
+          <Link
+            to="/quotes/builder"
+            className="flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium shadow-sm active:scale-95"
+          >
+            <Plus size={18} className="mr-2" />
+            Create Quote
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -504,6 +516,13 @@ export default function Quotes() {
           </div>
         </div>
       )}
+
+      {/* Report Generator Modal */}
+      <ReportGenerator
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        defaultType="quotes"
+      />
     </PageContainer>
   );
 }

@@ -44,7 +44,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { AppleBroadcastBanner } from '../components/AppleBroadcastBanner';
+import { BroadcastBanner } from '../components/BroadcastBanner';
 
 
 
@@ -262,7 +262,7 @@ export const DashboardLayout: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-gray-900">
-      <AppleBroadcastBanner />
+      <BroadcastBanner />
       {/* Desktop Sidebar - Hidden on Mobile */}
       <aside
         className={`${theme === 'soft-modern' ? "hidden md:flex md:flex-col md:w-64 sidebar" : "hidden md:flex md:flex-col md:w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"} transition-all duration-300 ${isCoPilotOpen && panelSide === 'left' ? 'md:ml-[400px]' : ''
