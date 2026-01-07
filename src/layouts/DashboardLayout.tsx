@@ -21,6 +21,7 @@ import {
   GripVertical,
   TrendingUp,
   Shield,
+  MessageCircle,
 } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
@@ -43,6 +44,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { AppleBroadcastBanner } from '../components/AppleBroadcastBanner';
+
+
 
 type NavItem = {
   path: string;
@@ -63,6 +67,7 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
 
 const HOME_ITEM: NavItem = { path: '/dashboard', icon: LayoutGrid, label: 'Home' };
 const SETTINGS_ITEM: NavItem = { path: '/settings', icon: Settings, label: 'Settings' };
+const CHAT_ITEM: NavItem = { path: '/chat', icon: MessageCircle, label: 'Chat' };
 
 interface SortableNavItemProps {
   item: NavItem;
@@ -257,6 +262,7 @@ export const DashboardLayout: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-gray-900">
+      <AppleBroadcastBanner />
       {/* Desktop Sidebar - Hidden on Mobile */}
       <aside
         className={`${theme === 'soft-modern' ? "hidden md:flex md:flex-col md:w-64 sidebar" : "hidden md:flex md:flex-col md:w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"} transition-all duration-300 ${isCoPilotOpen && panelSide === 'left' ? 'md:ml-[400px]' : ''
@@ -317,6 +323,21 @@ export const DashboardLayout: React.FC = () => {
           >
             <SETTINGS_ITEM.icon size={20} className="mr-3" />
             <span className="font-medium">{SETTINGS_ITEM.label}</span>
+          </Link>
+
+          <Link
+            to={CHAT_ITEM.path}
+            className={
+              theme === 'soft-modern'
+                ? `nav-item flex items-center px-4 py-3 ${isActive(CHAT_ITEM.path) ? 'active' : ''}`
+                : `flex items-center px-3 py-2 rounded-lg transition-colors ${isActive(CHAT_ITEM.path)
+                  ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`
+            }
+          >
+            <CHAT_ITEM.icon size={20} className="mr-3" />
+            <span className="font-medium">{CHAT_ITEM.label}</span>
           </Link>
         </nav>
 

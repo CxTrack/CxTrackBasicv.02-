@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
     Users, CreditCard, BarChart2, MessageSquare,
     Settings, Shield, Database, LayoutDashboard,
-    LogOut, ArrowLeft
+    LogOut, ArrowLeft, Send
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { UsersTab } from './UsersTab';
@@ -12,6 +12,7 @@ import { SupportTab } from './SupportTab';
 import { SettingsTab } from './SettingsTab';
 import { AuditLogsTab } from './AuditLogsTab';
 import { DatabaseTab } from './DatabaseTab';
+import { AppleBroadcastPanel } from '../../components/admin/AppleBroadcastPanel';
 // import { useThemeStore } from '@/stores/themeStore'; // Assuming this exists based on Dashboard.tsx
 
 export const AdminPage = () => {
@@ -26,6 +27,7 @@ export const AdminPage = () => {
         { id: 'settings', label: 'Settings', icon: Settings, component: SettingsTab },
         { id: 'audit', label: 'Audit Logs', icon: Shield, component: AuditLogsTab },
         { id: 'database', label: 'Database', icon: Database, component: DatabaseTab },
+        { id: 'broadcasts', label: 'Broadcasts', icon: Send, component: AppleBroadcastPanel },
     ];
 
     const ActiveComponent = tabs.find(t => t.id === activeTab)?.component || UsersTab;

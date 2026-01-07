@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 @layer utilities {
+
   /* Safe area for devices with notches */
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
@@ -16,12 +17,15 @@
 
   /* Utility to hide scrollbar when specifically needed */
   .scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
+    display: none;
+    /* Chrome, Safari and Opera */
   }
 
   /* Touch-friendly tap targets */
@@ -40,9 +44,26 @@
 
 /* Touch feedback */
 @media (hover: none) {
+
   button:active,
   a:active {
     transform: scale(0.97);
     transition: transform 0.1s;
   }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

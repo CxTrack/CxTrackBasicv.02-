@@ -31,6 +31,7 @@ import { CookieConsent } from './components/common/CookieConsent';
 
 import { CallDetail } from './pages/calls/CallDetail';
 import { AdminPage } from './pages/admin/AdminPage';
+import { ChatPage } from './pages/ChatPage';
 
 function App() {
   return (
@@ -76,9 +77,12 @@ function App() {
                 <Route path="invoices/builder/:id" element={<InvoiceBuilder />} />
                 <Route path="invoices/:id" element={<InvoiceDetail />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="chat" element={<ChatPage />} />
                 <Route path="privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
+
+              <Route path="/chat-window" element={<ChatPage isPopup />} />
             </Routes>
 
             <CoPilotButton />
