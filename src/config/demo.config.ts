@@ -13,6 +13,7 @@ export const DEMO_MODE_CONFIG = {
 
 export const DEMO_STORAGE_KEYS = {
   customers: 'cxtrack_demo_customers',
+  contacts: 'cxtrack_demo_contacts',
   products: 'cxtrack_demo_products',
   quotes: 'cxtrack_demo_quotes',
   invoices: 'cxtrack_demo_invoices',

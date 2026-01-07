@@ -11,6 +11,9 @@ import CustomerModal from '@/components/customers/CustomerModal';
 import { getCustomerFullName } from '@/utils/customer.utils';
 import { formatPhoneDisplay } from '@/utils/phone.utils';
 import { Card, Button, PageContainer } from '@/components/theme/ThemeComponents';
+import SettingsPopover from '@/components/settings/SettingsPopover';
+import CustomFieldsPanel from '@/components/settings/CustomFieldsPanel';
+import CSVImporter from '@/components/import/CSVImporter';
 import toast from 'react-hot-toast';
 
 export const Customers: React.FC = () => {
@@ -19,6 +22,8 @@ export const Customers: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'Active' | 'Inactive'>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
+  const [showCustomFields, setShowCustomFields] = useState(false);
 
   const { customers, loading, fetchCustomers, deleteCustomer } = useCustomerStore();
   const { theme } = useThemeStore();
@@ -78,6 +83,14 @@ export const Customers: React.FC = () => {
             <Plus size={20} className="mr-2" />
             Add Customer
           </Button>
+          <div className="ml-2">
+            <SettingsPopover
+              onCustomFields={() => setShowCustomFields(true)}
+              onImportCSV={() => setShowImporter(true)}
+              onExportData={() => toast('Export feature coming soon', { icon: '🚧' })}
+              onManageTags={() => toast('Tags management coming soon', { icon: '🚧' })}
+            />
+          </div>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -366,8 +379,8 @@ export const Customers: React.FC = () => {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg ${customer.customer_type === 'business'
-                          ? 'bg-gradient-to-br from-purple-500 to-indigo-600'
-                          : 'bg-gradient-to-br from-blue-500 to-cyan-600'
+                        ? 'bg-gradient-to-br from-purple-500 to-indigo-600'
+                        : 'bg-gradient-to-br from-blue-500 to-cyan-600'
                         }`}>
                         {customer.customer_type === 'business' ? (
                           <Building2 size={24} />
@@ -385,8 +398,8 @@ export const Customers: React.FC = () => {
                       </div>
                     </div>
                     <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase border ${customer.status === 'Active'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                        : 'bg-gray-50 text-gray-700 border-gray-100'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                      : 'bg-gray-50 text-gray-700 border-gray-100'
                       }`}>
                       {customer.status}
                     </span>
@@ -430,7 +443,23 @@ export const Customers: React.FC = () => {
       <CustomerModal
         isOpen={showCustomerModal}
         onClose={() => setShowCustomerModal(false)}
-        navigateToProfileAfterCreate={false}
+        customer={undefined} // Passing undefined for create mode
+      />
+
+      <CSVImporter
+        isOpen={showImporter}
+        onClose={() => setShowImporter(false)}
+        onSuccess={() => {
+          setShowImporter(false);
+          fetchCustomers();
+          toast.success('Import completed successfully');
+        }}
+      />
+
+      <CustomFieldsPanel
+        isOpen={showCustomFields}
+        onClose={() => setShowCustomFields(false)}
+        entityType="customer"
       />
     </PageContainer>
   );

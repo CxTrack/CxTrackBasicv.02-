@@ -26,6 +26,8 @@ interface CustomerStore {
   contacts: CustomerContact[];
   fetchContacts: (customerId: string) => Promise<void>;
   addContact: (contact: Partial<CustomerContact>) => Promise<void>;
+  updateContact: (id: string, updates: Partial<CustomerContact>) => Promise<void>;
+  deleteContact: (id: string) => Promise<void>;
 
   files: CustomerFile[];
   fetchFiles: (customerId: string) => Promise<void>;
@@ -368,8 +370,19 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
     }
   },
 
+  // Contacts management with demo mode support
   fetchContacts: async (customerId: string) => {
     set({ loading: true, error: null });
+
+    if (DEMO_MODE) {
+      const allContacts = loadDemoData<CustomerContact>(DEMO_STORAGE_KEYS.contacts);
+      const customerContacts = allContacts
+        .filter(c => c.customer_id === customerId)
+        .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0));
+      set({ contacts: customerContacts, loading: false });
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('customer_contacts')
@@ -386,10 +399,83 @@ export const useCustomerStore = create<CustomerStore>((set, get) => ({
 
   addContact: async (contact: Partial<CustomerContact>) => {
     set({ loading: true, error: null });
+
+    if (DEMO_MODE) {
+      const newContact: CustomerContact = {
+        id: generateDemoId('contact'),
+        customer_id: contact.customer_id!,
+        name: contact.name || '',
+        title: contact.title || null,
+        email: contact.email || null,
+        phone: contact.phone || null,
+        is_primary: contact.is_primary || false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const allContacts = loadDemoData<CustomerContact>(DEMO_STORAGE_KEYS.contacts);
+      saveDemoData(DEMO_STORAGE_KEYS.contacts, [newContact, ...allContacts]);
+      set((state) => ({ contacts: [newContact, ...state.contacts], loading: false }));
+      return;
+    }
+
     try {
       const { data, error } = await supabase.from('customer_contacts').insert(contact).select().single();
       if (error) throw error;
       set((state) => ({ contacts: [data, ...state.contacts], loading: false }));
+    } catch (error: any) {
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  updateContact: async (id: string, updates: Partial<CustomerContact>) => {
+    set({ loading: true, error: null });
+
+    if (DEMO_MODE) {
+      const allContacts = loadDemoData<CustomerContact>(DEMO_STORAGE_KEYS.contacts);
+      const index = allContacts.findIndex(c => c.id === id);
+      if (index !== -1) {
+        const updatedContact = { ...allContacts[index], ...updates, updated_at: new Date().toISOString() };
+        allContacts[index] = updatedContact;
+        saveDemoData(DEMO_STORAGE_KEYS.contacts, allContacts);
+        set((state) => ({
+          contacts: state.contacts.map(c => c.id === id ? updatedContact : c),
+          loading: false
+        }));
+      }
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('customer_contacts')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      set((state) => ({ contacts: state.contacts.map(c => c.id === id ? data : c), loading: false }));
+    } catch (error: any) {
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  deleteContact: async (id: string) => {
+    set({ loading: true, error: null });
+
+    if (DEMO_MODE) {
+      const allContacts = loadDemoData<CustomerContact>(DEMO_STORAGE_KEYS.contacts);
+      const filtered = allContacts.filter(c => c.id !== id);
+      saveDemoData(DEMO_STORAGE_KEYS.contacts, filtered);
+      set((state) => ({ contacts: state.contacts.filter(c => c.id !== id), loading: false }));
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('customer_contacts').delete().eq('id', id);
+      if (error) throw error;
+      set((state) => ({ contacts: state.contacts.filter(c => c.id !== id), loading: false }));
     } catch (error: any) {
       set({ error: error.message, loading: false });
     }
