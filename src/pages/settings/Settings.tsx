@@ -3,7 +3,7 @@ import { useOrganizationStore } from '@/stores/organizationStore';
 import { useThemeStore, Theme } from '@/stores/themeStore';
 import { settingsService, BusinessSettings as BusinessSettingsType, DocumentTemplate } from '@/services/settings.service';
 import { supabase } from '@/lib/supabase';
-import { Building2, FileText, CreditCard, Calendar as CalendarIcon, Share2, Check, Loader2, Upload, Save, Palette, Sun, Moon, Plus, Edit, Trash2, Eye, Download, Zap, Users, UserPlus, TrendingUp, CheckCircle, Link, Copy, Code, Key, Info, MoreVertical, Smartphone, Package, DollarSign, Phone, CheckSquare, LayoutGrid, HelpCircle } from 'lucide-react';
+import { Building2, FileText, CreditCard, Calendar as CalendarIcon, Share2, Check, Loader2, Upload, Save, Palette, Sun, Moon, Plus, Edit, Trash2, Eye, Download, Zap, Users, UserPlus, TrendingUp, CheckCircle, Link, Copy, Code, Key, Info, MoreVertical, Smartphone, Package, DollarSign, Phone, CheckSquare, LayoutGrid, HelpCircle, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PhoneInput } from '@/components/ui/PhoneInput';
@@ -16,6 +16,7 @@ import ProfileTab from '@/components/settings/ProfileTab';
 import NotificationsTab from '@/components/settings/NotificationsTab';
 import SecurityTab from '@/components/settings/SecurityTab';
 import HelpCenterTab from '@/components/settings/HelpCenterTab';
+import VoiceAgentSetup from './VoiceAgentSetup';
 import toast from 'react-hot-toast';
 
 export default function Settings() {
@@ -25,7 +26,7 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'mobile' | 'business' | 'billing' | 'templates' | 'payment' | 'calendar' | 'sharing' | 'notifications' | 'security' | 'help'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'mobile' | 'business' | 'billing' | 'templates' | 'payment' | 'calendar' | 'sharing' | 'notifications' | 'security' | 'help' | 'voiceagent'>('profile');
   const [settings, setSettings] = useState<BusinessSettingsType | null>(null);
   const [quoteTemplates, setQuoteTemplates] = useState<DocumentTemplate[]>([]);
   const [invoiceTemplates, setInvoiceTemplates] = useState<DocumentTemplate[]>([]);
@@ -364,6 +365,7 @@ export default function Settings() {
               { id: 'payment', label: 'Payment Integration', icon: Zap },
               { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
               { id: 'sharing', label: 'Sharing', icon: Share2 },
+              { id: 'voiceagent', label: 'Voice Agent', icon: Mic },
               { id: 'notifications', label: 'Notifications', icon: Users },
               { id: 'security', label: 'Security', icon: Key },
               { id: 'help', label: 'Help', icon: HelpCircle },
@@ -1655,6 +1657,7 @@ export default function Settings() {
         {activeTab === 'profile' && <ProfileTab />}
         {activeTab === 'notifications' && <NotificationsTab />}
         {activeTab === 'security' && <SecurityTab />}
+        {activeTab === 'voiceagent' && <VoiceAgentSetup />}
         {activeTab === 'help' && <HelpCenterTab />}
       </div>
       <InviteMemberModal

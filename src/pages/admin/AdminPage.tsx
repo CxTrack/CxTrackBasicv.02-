@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
     Users, CreditCard, BarChart2, MessageSquare,
     Settings, Shield, Database, LayoutDashboard,
-    LogOut, ArrowLeft, Send
+    LogOut, ArrowLeft, Send, DollarSign
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { UsersTab } from './UsersTab';
@@ -12,6 +12,7 @@ import { SupportTab } from './SupportTab';
 import { SettingsTab } from './SettingsTab';
 import { AuditLogsTab } from './AuditLogsTab';
 import { DatabaseTab } from './DatabaseTab';
+import { PlansTab } from './PlansTab';
 import { BroadcastPanel } from '../../components/admin/BroadcastPanel';
 // import { useThemeStore } from '@/stores/themeStore'; // Assuming this exists based on Dashboard.tsx
 
@@ -22,6 +23,7 @@ export const AdminPage = () => {
     const tabs = [
         { id: 'users', label: 'Users', icon: Users, component: UsersTab },
         { id: 'billing', label: 'Billing & Revenue', icon: CreditCard, component: BillingTab },
+        { id: 'plans', label: 'Subscription Plans', icon: DollarSign, component: PlansTab },
         { id: 'analytics', label: 'Analytics', icon: BarChart2, component: AnalyticsTab },
         { id: 'support', label: 'Support Tickets', icon: MessageSquare, component: SupportTab },
         { id: 'settings', label: 'Settings', icon: Settings, component: SettingsTab },

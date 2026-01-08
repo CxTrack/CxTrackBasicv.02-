@@ -22,6 +22,10 @@ export const DEMO_STORAGE_KEYS = {
   calls: 'cxtrack_demo_calls',
   customer_notes: 'cxtrack_demo_customer_notes',
   preferences: 'cxtrack_demo_preferences',
+  tickets: 'cxtrack_demo_tickets',
+  ticket_messages: 'cxtrack_demo_ticket_messages',
+  plans: 'cxtrack_demo_plans',
+  voice_agent: 'cxtrack_demo_voice_agent',
 } as const;
 
 export const isDemoMode = () => DEMO_MODE_CONFIG.enabled;
