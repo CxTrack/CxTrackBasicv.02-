@@ -3,7 +3,7 @@ import { useOrganizationStore } from '@/stores/organizationStore';
 import { useThemeStore, Theme } from '@/stores/themeStore';
 import { settingsService, BusinessSettings as BusinessSettingsType, DocumentTemplate } from '@/services/settings.service';
 import { supabase } from '@/lib/supabase';
-import { Building2, FileText, CreditCard, Calendar as CalendarIcon, Share2, Check, Loader2, Upload, Save, Palette, Sun, Moon, Plus, Edit, Trash2, Eye, Download, Zap, Users, UserPlus, TrendingUp, CheckCircle, Link, Copy, Code, Key, Info, MoreVertical, Smartphone, Package, DollarSign, Phone, CheckSquare, LayoutGrid, HelpCircle, Mic } from 'lucide-react';
+import { Building2, FileText, CreditCard, Calendar as CalendarIcon, Share2, Check, Loader2, Upload, Save, Palette, Sun, Moon, Plus, Edit, Trash2, Eye, Download, Zap, Users, UserPlus, TrendingUp, CheckCircle, Link, Copy, Code, Key, Info, MoreVertical, Smartphone, Package, DollarSign, Phone, CheckSquare, LayoutGrid, HelpCircle, Mic, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PhoneInput } from '@/components/ui/PhoneInput';
@@ -26,7 +26,7 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'mobile' | 'business' | 'billing' | 'templates' | 'payment' | 'calendar' | 'sharing' | 'notifications' | 'security' | 'help' | 'voiceagent'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'mobile' | 'business' | 'billing' | 'templates' | 'payment' | 'twilio' | 'calendar' | 'sharing' | 'notifications' | 'security' | 'help' | 'voiceagent'>('profile');
   const [settings, setSettings] = useState<BusinessSettingsType | null>(null);
   const [quoteTemplates, setQuoteTemplates] = useState<DocumentTemplate[]>([]);
   const [invoiceTemplates, setInvoiceTemplates] = useState<DocumentTemplate[]>([]);
@@ -362,7 +362,8 @@ export default function Settings() {
               { id: 'business', label: 'Business Info', icon: Building2 },
               { id: 'billing', label: 'Billing & Plans', icon: CreditCard },
               { id: 'templates', label: 'Templates', icon: FileText },
-              { id: 'payment', label: 'Payment Integration', icon: Zap },
+              { id: 'payment', label: 'Payment', icon: Zap },
+              { id: 'twilio', label: 'Communications', icon: MessageSquare },
               { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
               { id: 'sharing', label: 'Sharing', icon: Share2 },
               { id: 'voiceagent', label: 'Voice Agent', icon: Mic },
@@ -1276,6 +1277,112 @@ export default function Settings() {
                     <span className="ml-3 text-sm text-gray-900 dark:text-white">{method}</span>
                   </label>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'twilio' && (
+          <div className="max-w-4xl space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Twilio Integration</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Connect your Twilio account to send SMS messages and make calls
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Not Connected</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Twilio Account SID
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    className="font-mono"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Find this in your Twilio Console Dashboard
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Auth Token
+                  </label>
+                  <Input
+                    type="password"
+                    placeholder="Your Twilio auth token"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Keep this secret - never share it publicly
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Twilio Phone Number
+                  </label>
+                  <PhoneInput
+                    value=""
+                    onChange={() => { }}
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Your Twilio phone number for sending SMS and making calls
+                  </p>
+                </div>
+
+                <div className="pt-4">
+                  <Button variant="outline" className="mr-3">
+                    Test Connection
+                  </Button>
+                  <Button>
+                    Save Twilio Settings
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">SMS Capabilities</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                With Twilio configured, you can:
+              </p>
+
+              <div className="space-y-3">
+                {[
+                  { label: 'Send quotes via SMS', description: 'Share quotes directly to customer phones' },
+                  { label: 'Send invoices via SMS', description: 'Notify customers about new invoices' },
+                  { label: 'Appointment reminders', description: 'Automatically remind customers of upcoming appointments' },
+                  { label: 'AI Voice Agent calls', description: 'Enable outbound calls from your AI agent' },
+                ].map((feature) => (
+                  <div key={feature.label} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">{feature.label}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-100">Need a Twilio account?</h3>
+                  <p className="text-sm text-blue-800 dark:text-blue-200 mt-1">
+                    Sign up at <a href="https://www.twilio.com" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">twilio.com</a> to get your Account SID, Auth Token, and purchase a phone number.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

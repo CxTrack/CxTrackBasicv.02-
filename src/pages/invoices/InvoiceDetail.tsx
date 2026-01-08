@@ -303,10 +303,10 @@ export default function InvoiceDetail() {
                     </td>
                     <td className="text-right py-4 text-gray-900 dark:text-white">{item.quantity}</td>
                     <td className="text-right py-4 text-gray-900 dark:text-white">
-                      ${item.unit_price.toFixed(2)}
+                      ${(item.unit_price ?? 0).toFixed(2)}
                     </td>
                     <td className="text-right py-4 font-medium text-gray-900 dark:text-white">
-                      ${item.line_total.toFixed(2)}
+                      ${(item.line_total ?? 0).toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -319,43 +319,43 @@ export default function InvoiceDetail() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  ${invoice.subtotal.toFixed(2)}
+                  ${(invoice.subtotal ?? 0).toFixed(2)}
                 </span>
               </div>
-              {invoice.discount_amount > 0 && (
+              {(invoice.discount_amount ?? 0) > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Discount</span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    -${invoice.discount_amount.toFixed(2)}
+                    -${(invoice.discount_amount ?? 0).toFixed(2)}
                   </span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600 dark:text-gray-400">Tax</span>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  ${invoice.tax_amount.toFixed(2)}
+                  ${(invoice.tax_amount ?? 0).toFixed(2)}
                 </span>
               </div>
               <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex justify-between">
                   <span className="text-lg font-semibold text-gray-900 dark:text-white">Total</span>
                   <span className="text-lg font-bold text-blue-600">
-                    ${invoice.total_amount.toFixed(2)}
+                    ${(invoice.total_amount ?? 0).toFixed(2)}
                   </span>
                 </div>
               </div>
-              {invoice.amount_paid > 0 && (
+              {(invoice.amount_paid ?? 0) > 0 && (
                 <>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Amount Paid</span>
                     <span className="font-medium text-green-600">
-                      ${invoice.amount_paid.toFixed(2)}
+                      ${(invoice.amount_paid ?? 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
                     <span className="font-semibold text-gray-900 dark:text-white">Amount Due</span>
                     <span className="font-bold text-orange-600">
-                      ${invoice.amount_due.toFixed(2)}
+                      ${(invoice.amount_due ?? 0).toFixed(2)}
                     </span>
                   </div>
                 </>

@@ -267,10 +267,10 @@ export default function QuoteDetail() {
                     </td>
                     <td className="text-right py-4 text-gray-900 dark:text-white">{item.quantity}</td>
                     <td className="text-right py-4 text-gray-900 dark:text-white">
-                      ${item.unit_price.toFixed(2)}
+                      ${(item.unit_price ?? 0).toFixed(2)}
                     </td>
                     <td className="text-right py-4 font-medium text-gray-900 dark:text-white">
-                      ${item.line_total.toFixed(2)}
+                      ${(item.line_total ?? 0).toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -283,28 +283,28 @@ export default function QuoteDetail() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  ${quote.subtotal.toFixed(2)}
+                  ${(quote.subtotal ?? 0).toFixed(2)}
                 </span>
               </div>
-              {quote.discount_amount > 0 && (
+              {(quote.discount_amount ?? 0) > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Discount</span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    -${quote.discount_amount.toFixed(2)}
+                    -${(quote.discount_amount ?? 0).toFixed(2)}
                   </span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600 dark:text-gray-400">Tax</span>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  ${quote.tax_amount.toFixed(2)}
+                  ${(quote.tax_amount ?? 0).toFixed(2)}
                 </span>
               </div>
               <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex justify-between">
                   <span className="text-lg font-semibold text-gray-900 dark:text-white">Total</span>
                   <span className="text-lg font-bold text-blue-600">
-                    ${quote.total_amount.toFixed(2)}
+                    ${(quote.total_amount ?? 0).toFixed(2)}
                   </span>
                 </div>
               </div>

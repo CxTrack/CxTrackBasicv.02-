@@ -79,12 +79,18 @@ const CompactStatCard = ({ label, value, subValue, icon: Icon, color, onClick }:
 };
 
 // Compact Widget Wrapper
-const CompactWidget = ({ title, action, children, className }: any) => {
+const CompactWidget = ({ title, action, children, className, onClick }: any) => {
     const { theme } = useThemeStore();
     return (
         <Card className={`flex flex-col h-full ${className} ${theme === 'soft-modern' ? 'bg-white/60' : ''}`}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{title}</h3>
+                <h3
+                    onClick={onClick}
+                    className={`text-sm font-semibold text-gray-900 dark:text-white ${onClick ? 'cursor-pointer hover:text-primary-600 transition-colors' : ''}`}
+                >
+                    {title}
+                    {onClick && <span className="text-xs text-gray-400 ml-2">→</span>}
+                </h3>
                 {action}
             </div>
             <div className="flex-1 overflow-hidden">
@@ -373,11 +379,12 @@ export const DashboardPage = () => {
                     <CompactWidget
                         title="Recent Activity"
                         className="h-[350px] border border-gray-200 dark:border-gray-800 shadow-sm"
+                        onClick={() => navigate('/reports')}
                     >
                         <div className="h-full overflow-y-auto scrollbar-thin">
                             {[...calls, ...quotes, ...invoices]
                                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                                .slice(0, 15)
+                                .slice(0, 10)
                                 .map((item, i) => {
                                     const isCall = 'phone_number' in item;
                                     const isQuote = 'quote_number' in item;
@@ -418,8 +425,9 @@ export const DashboardPage = () => {
                     <CompactWidget
                         title="Today's Schedule"
                         className="h-[350px] border border-gray-200 dark:border-gray-800 shadow-sm"
+                        onClick={() => navigate('/calendar')}
                         action={
-                            <button onClick={() => navigate('/calendar')} className="text-primary-600 hover:text-primary-700">
+                            <button onClick={(e) => { e.stopPropagation(); navigate('/calendar'); }} className="text-primary-600 hover:text-primary-700">
                                 <Plus size={16} />
                             </button>
                         }

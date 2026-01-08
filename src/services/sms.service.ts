@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { twilioService } from './twilio.service';
 
 export interface SMSSettings {
   id: string;
@@ -121,7 +122,7 @@ export const smsService = {
     recipientPhone: string,
     shareLink: string,
     companyName: string
-  ): Promise<{ success: boolean; error?: string }> {
+  ): Promise<{ success: boolean; error?: string; messageSid?: string }> {
     const settings = await this.getSMSSettings(organizationId);
 
     if (!settings || !settings.is_configured) {
@@ -135,25 +136,19 @@ export const smsService = {
 
     const message = `You have a new quote ${quoteNumber} from ${companyName}. View it here: ${shareLink}`;
 
-    const logEntry = {
-      organization_id: organizationId,
-      document_type: 'quote' as const,
-      document_id: quoteId,
-      recipient_phone: phoneValidation.formatted,
-      message_body: message,
-      status: 'pending',
-    };
-
     try {
-      const { data, error } = await supabase
-        .from('sms_log')
-        .insert(logEntry)
-        .select()
-        .single();
+      // Use Twilio service to actually send the SMS
+      const result = await twilioService.sendSMS(
+        organizationId,
+        phoneValidation.formatted,
+        message,
+        {
+          documentType: 'quote',
+          documentId: quoteId,
+        }
+      );
 
-      if (error) throw error;
-
-      return { success: true };
+      return result;
     } catch (error: any) {
       return { success: false, error: error.message };
     }
@@ -166,7 +161,7 @@ export const smsService = {
     recipientPhone: string,
     shareLink: string,
     companyName: string
-  ): Promise<{ success: boolean; error?: string }> {
+  ): Promise<{ success: boolean; error?: string; messageSid?: string }> {
     const settings = await this.getSMSSettings(organizationId);
 
     if (!settings || !settings.is_configured) {
@@ -180,25 +175,19 @@ export const smsService = {
 
     const message = `You have a new invoice ${invoiceNumber} from ${companyName}. View it here: ${shareLink}`;
 
-    const logEntry = {
-      organization_id: organizationId,
-      document_type: 'invoice' as const,
-      document_id: invoiceId,
-      recipient_phone: phoneValidation.formatted,
-      message_body: message,
-      status: 'pending',
-    };
-
     try {
-      const { data, error } = await supabase
-        .from('sms_log')
-        .insert(logEntry)
-        .select()
-        .single();
+      // Use Twilio service to actually send the SMS
+      const result = await twilioService.sendSMS(
+        organizationId,
+        phoneValidation.formatted,
+        message,
+        {
+          documentType: 'invoice',
+          documentId: invoiceId,
+        }
+      );
 
-      if (error) throw error;
-
-      return { success: true };
+      return result;
     } catch (error: any) {
       return { success: false, error: error.message };
     }
