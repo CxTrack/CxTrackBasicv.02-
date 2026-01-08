@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Save, User, Building, Mail, Phone, MapPin, Globe, Calendar, Tag } from 'lucide-react';
 import { useCustomerStore } from '@/stores/customerStore';
 import { PhoneInput } from '@/components/ui/PhoneInput';
+import { AddressAutocomplete, AddressComponents } from '@/components/ui/AddressAutocomplete';
 import toast from 'react-hot-toast';
 
 export default function CustomerForm() {
@@ -196,11 +197,10 @@ export default function CustomerForm() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, customer_type: 'personal' })}
-                    className={`p-3 border-2 rounded-lg text-left transition-all ${
-                      formData.customer_type === 'personal'
+                    className={`p-3 border-2 rounded-lg text-left transition-all ${formData.customer_type === 'personal'
                         ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                    }`}
+                      }`}
                   >
                     <User size={20} className="mb-1 text-primary-600 dark:text-primary-400" />
                     <p className="font-medium text-gray-900 dark:text-white text-sm">Personal</p>
@@ -209,11 +209,10 @@ export default function CustomerForm() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, customer_type: 'business' })}
-                    className={`p-3 border-2 rounded-lg text-left transition-all ${
-                      formData.customer_type === 'business'
+                    className={`p-3 border-2 rounded-lg text-left transition-all ${formData.customer_type === 'business'
                         ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                    }`}
+                      }`}
                   >
                     <Building size={20} className="mb-1 text-primary-600 dark:text-primary-400" />
                     <p className="font-medium text-gray-900 dark:text-white text-sm">Business</p>
@@ -384,15 +383,21 @@ export default function CustomerForm() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Street Address
-                </label>
-                <input
-                  type="text"
+                <AddressAutocomplete
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-                  placeholder="123 Main St"
+                  onChange={(value) => setFormData({ ...formData, address: value })}
+                  onAddressSelect={(components: AddressComponents) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      address: components.address,
+                      city: components.city || prev.city,
+                      state: components.state || prev.state,
+                      postal_code: components.postal_code || prev.postal_code,
+                      country: components.country || prev.country,
+                    }));
+                  }}
+                  label="Street Address"
+                  placeholder="Start typing an address..."
                 />
               </div>
 

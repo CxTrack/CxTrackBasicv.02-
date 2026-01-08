@@ -11,11 +11,13 @@ import { useProductStore } from '../stores/productStore';
 import { useOrganizationStore } from '../stores/organizationStore';
 import { useThemeStore } from '../stores/themeStore';
 import { PageContainer, Card, IconBadge } from '../components/theme/ThemeComponents';
+import { CompactStatsBar } from '../components/compact/CompactViews';
+import { ResizableTable, ColumnDef } from '../components/compact/ResizableTable';
 import toast from 'react-hot-toast';
 import type { ProductType } from '../types/app.types';
 
 export default function Products() {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'compact' | 'grid' | 'list'>('compact');
   const [filterType, setFilterType] = useState<'all' | ProductType>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -291,16 +293,18 @@ export default function Products() {
 
           <div className="flex p-1 bg-slate-100 dark:bg-gray-700 rounded-lg h-[36px]">
             <button
-              onClick={() => setViewMode('grid')}
-              className={`px-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              <Grid size={18} />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => setViewMode('compact')}
+              className={`px-2 rounded-md transition-all ${viewMode === 'compact' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+              title="Compact View"
             >
               <List size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+              title="Card View"
+            >
+              <Grid size={18} />
             </button>
           </div>
         </div>
@@ -330,6 +334,131 @@ export default function Products() {
               </Link>
             )}
           </div>
+        ) : viewMode === 'compact' ? (
+          <>
+            {/* Compact Stats */}
+            <CompactStatsBar stats={[
+              { label: 'Total', value: filteredProducts.length },
+              { label: 'Active', value: filteredProducts.filter(p => p.is_active).length },
+              { label: 'Avg Price', value: `$${stats.avgPrice.toFixed(0)}` },
+              { label: 'Value', value: `$${(stats.totalValue / 1000).toFixed(1)}k` },
+            ]} />
+
+            {/* Resizable Table */}
+            <ResizableTable
+              storageKey="products"
+              data={filteredProducts}
+              onRowClick={(product) => window.location.href = `/products/${product.id}`}
+              columns={[
+                {
+                  id: 'product',
+                  header: 'Product',
+                  defaultWidth: 250,
+                  minWidth: 150,
+                  render: (product) => (
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {product.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <Link
+                          to={`/products/${product.id}`}
+                          className="font-medium text-gray-900 dark:text-white text-sm truncate block hover:text-blue-600 dark:hover:text-blue-400"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {product.name}
+                        </Link>
+                        {product.sku && (
+                          <span className="text-[11px] text-gray-400 font-mono truncate block">{product.sku}</span>
+                        )}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  id: 'type',
+                  header: 'Type',
+                  defaultWidth: 90,
+                  minWidth: 70,
+                  render: (product) => (
+                    <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${product.product_type === 'service' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
+                      product.product_type === 'bundle' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                        'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                      }`}>
+                      {product.product_type}
+                    </span>
+                  ),
+                },
+                {
+                  id: 'category',
+                  header: 'Category',
+                  defaultWidth: 120,
+                  minWidth: 80,
+                  render: (product) => (
+                    <span className="text-gray-600 dark:text-gray-400 text-sm truncate block">{product.category || '—'}</span>
+                  ),
+                },
+                {
+                  id: 'price',
+                  header: 'Price',
+                  defaultWidth: 80,
+                  minWidth: 60,
+                  align: 'right',
+                  render: (product) => (
+                    <span className="font-semibold text-gray-900 dark:text-white">${product.price.toFixed(0)}</span>
+                  ),
+                },
+                {
+                  id: 'stock',
+                  header: 'Stock',
+                  defaultWidth: 60,
+                  minWidth: 50,
+                  align: 'center',
+                  render: (product) => (
+                    product.track_inventory ? (
+                      <span className={`text-sm font-medium ${(product.quantity_on_hand || 0) > 20 ? 'text-green-600' :
+                        (product.quantity_on_hand || 0) > 5 ? 'text-yellow-600' : 'text-red-600'
+                        }`}>
+                        {product.quantity_on_hand || 0}
+                      </span>
+                    ) : <span className="text-gray-400">—</span>
+                  ),
+                },
+                {
+                  id: 'status',
+                  header: 'Status',
+                  defaultWidth: 80,
+                  minWidth: 60,
+                  render: (product) => (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${product.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                      'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                      }`}>
+                      {product.is_active ? 'Active' : 'Off'}
+                    </span>
+                  ),
+                },
+                {
+                  id: 'actions',
+                  header: 'Actions',
+                  defaultWidth: 100,
+                  minWidth: 80,
+                  align: 'right',
+                  render: (product) => (
+                    <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
+                      <Link to={`/products/${product.id}`} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded opacity-60 hover:opacity-100">
+                        <Eye className="w-3.5 h-3.5 text-gray-500" />
+                      </Link>
+                      {(currentMembership?.role === 'owner' || currentMembership?.role === 'admin') && (
+                        <button onClick={() => handleDelete(product.id)} className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded opacity-60 hover:opacity-100">
+                          <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
+                        </button>
+                      )}
+                    </div>
+                  ),
+                },
+              ] as ColumnDef[]}
+            />
+          </>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-6">
             {filteredProducts.map((product) => (

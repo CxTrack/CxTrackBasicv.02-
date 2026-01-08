@@ -6,9 +6,10 @@ import { useInvoiceStore } from '@/stores/invoiceStore';
 import { useCustomerStore } from '@/stores/customerStore';
 import {
   Plus, Search, FileText, DollarSign, TrendingUp,
-  LayoutGrid, List, Columns, ArrowUpDown, MoreVertical, Send, Mouse
+  LayoutGrid, List, Columns, MoreVertical, Send, Mouse
 } from 'lucide-react';
 import { Card, PageContainer, IconBadge } from '@/components/theme/ThemeComponents';
+import { ResizableTable, ColumnDef } from '@/components/compact/ResizableTable';
 
 interface PipelineItem {
   id: string;
@@ -257,6 +258,129 @@ const Pipeline: React.FC = () => {
     items: filteredItems.filter(item => item.stage === stage.id),
   }));
 
+  const pipelineColumns: ColumnDef<PipelineItem>[] = [
+    {
+      id: 'deal',
+      header: 'Deal',
+      defaultWidth: 250,
+      minWidth: 200,
+      render: (item) => (
+        <div className="flex items-center gap-3">
+          <div className={`w-2 h-2 rounded-full ${item.type === 'quote' ? 'bg-purple-500' : 'bg-blue-500'}`} />
+          <div>
+            <p className="font-semibold text-slate-900 dark:text-white">
+              {item.number}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {item.type}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'customer',
+      header: 'Customer',
+      defaultWidth: 200,
+      minWidth: 150,
+      render: (item) => (
+        <div>
+          <p className="font-medium text-slate-900 dark:text-white truncate">
+            {item.customer_name}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+            {item.customer_email}
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'amount',
+      header: 'Amount',
+      defaultWidth: 120,
+      minWidth: 100,
+      render: (item) => (
+        <div className="text-right font-bold text-slate-900 dark:text-white">
+          ${item.total_amount.toLocaleString()}
+        </div>
+      ),
+    },
+    {
+      id: 'stage',
+      header: 'Stage',
+      defaultWidth: 140,
+      minWidth: 100,
+      render: (item) => (
+        <div className="flex justify-center">
+          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${getStageColor(item.stage)}`}>
+            {item.stage}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: 'probability',
+      header: 'Probability',
+      defaultWidth: 160,
+      minWidth: 120,
+      render: (item) => (
+        <div className="flex items-center gap-2">
+          <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${item.probability >= 0.75 ? 'bg-green-500' :
+                item.probability >= 0.5 ? 'bg-blue-500' :
+                  item.probability >= 0.25 ? 'bg-orange-500' : 'bg-slate-400'
+                }`}
+              style={{ width: `${item.probability * 100}%` }}
+            />
+          </div>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-400 w-8 text-right">
+            {Math.round(item.probability * 100)}%
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: 'created',
+      header: 'Created',
+      defaultWidth: 120,
+      minWidth: 100,
+      render: (item) => (
+        <div className="text-sm text-slate-600 dark:text-slate-400 text-right">
+          {new Date(item.created_at).toLocaleDateString()}
+        </div>
+      ),
+    },
+    {
+      id: 'actions',
+      header: 'ACTIONS',
+      defaultWidth: 100,
+      minWidth: 80,
+      render: (item) => (
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/${item.type === 'quote' ? 'quotes' : 'invoices'}/${item.id}`);
+            }}
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors text-slate-400 hover:text-blue-600"
+          >
+            <FileText size={16} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              // More actions
+            }}
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors text-slate-400 hover:text-slate-600"
+          >
+            <MoreVertical size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <PageContainer className="gap-6">
       {/* Header */}
@@ -421,136 +545,15 @@ const Pipeline: React.FC = () => {
           </button>
         </Card>
       ) : viewMode === 'table' ? (
-        <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800">
-          <table className="w-full">
-            <thead className="bg-slate-50 dark:bg-slate-900 border-b-2 border-slate-200 dark:border-slate-700">
-              <tr>
-                <th className="text-left px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
-                  <button
-                    onClick={() => handleSort('customer')}
-                    className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-white transition-colors"
-                  >
-                    Deal
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </th>
-                <th className="text-left px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
-                  Customer
-                </th>
-                <th className="text-right px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
-                  <button
-                    onClick={() => handleSort('amount')}
-                    className="flex items-center gap-2 ml-auto hover:text-slate-900 dark:hover:text-white transition-colors"
-                  >
-                    Amount
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </th>
-                <th className="text-center px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
-                  <button
-                    onClick={() => handleSort('stage')}
-                    className="flex items-center gap-2 mx-auto hover:text-slate-900 dark:hover:text-white transition-colors"
-                  >
-                    Stage
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </th>
-                <th className="text-center px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
-                  <button
-                    onClick={() => handleSort('probability')}
-                    className="flex items-center gap-2 mx-auto hover:text-slate-900 dark:hover:text-white transition-colors"
-                  >
-                    Probability
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </th>
-                <th className="text-right px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
-                  <button
-                    onClick={() => handleSort('date')}
-                    className="flex items-center gap-2 ml-auto hover:text-slate-900 dark:hover:text-white transition-colors"
-                  >
-                    Created
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </th>
-                <th className="w-12"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedItems.map(item => (
-                <tr
-                  key={`${item.type}-${item.id}`}
-                  onClick={() => navigate(`/${item.type === 'quote' ? 'quotes' : 'invoices'}/${item.id}`)}
-                  className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${item.type === 'quote' ? 'bg-purple-500' : 'bg-blue-500'}`} />
-                      <div>
-                        <p className="font-semibold text-slate-900 dark:text-white">
-                          {item.number}
-                        </p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                          {item.type === 'invoice' ? 'Invoice' : 'Quote'}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-medium text-slate-900 dark:text-white">
-                        {item.customer_name}
-                      </p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
-                        {item.customer_email}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <p className="text-lg font-bold text-slate-900 dark:text-white">
-                      ${item.total_amount.toLocaleString()}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center">
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize ${getStageColor(item.stage)}`}>
-                        {item.stage}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-20 h-2 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-600 rounded-full transition-all"
-                          style={{ width: `${item.probability * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        {Math.round(item.probability * 100)}%
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      {new Date(item.created_at).toLocaleDateString()}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                      className="p-2 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                    >
-                      <MoreVertical className="w-4 h-4 text-slate-400" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ResizableTable
+          columns={pipelineColumns}
+          data={sortedItems}
+          onRowClick={(item) => navigate(`/${item.type === 'quote' ? 'quotes' : 'invoices'}/${item.id}`)}
+          onSort={(id) => handleSort(id as any)}
+          sortColumn={sortField}
+          sortDirection={sortDirection}
+          storageKey="pipeline-table-v1"
+        />
       ) : viewMode === 'split' ? (
         <div className="grid grid-cols-12 gap-6" style={{ height: 'calc(100vh - 400px)' }}>
           <div className="col-span-12 lg:col-span-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800">

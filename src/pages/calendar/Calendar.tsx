@@ -230,7 +230,7 @@ export default function Calendar() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-7 auto-rows-[120px]">
+              <div className="grid grid-cols-7 auto-rows-[150px]">
                 {getCalendarDays().map((day, index) => {
                   const dayEvents = getEventsForDate(day);
                   const dayTasks = getTasksForDate(day);

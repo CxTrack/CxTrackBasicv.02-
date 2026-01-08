@@ -3,7 +3,7 @@ import { useOrganizationStore } from '@/stores/organizationStore';
 import { useThemeStore, Theme } from '@/stores/themeStore';
 import { settingsService, BusinessSettings as BusinessSettingsType, DocumentTemplate } from '@/services/settings.service';
 import { supabase } from '@/lib/supabase';
-import { Building2, FileText, CreditCard, Calendar as CalendarIcon, Share2, Check, Loader2, Upload, Save, Palette, Sun, Moon, Plus, Edit, Trash2, Eye, Download, Zap, Users, UserPlus, TrendingUp, CheckCircle, Link, Copy, Code, Key, Info, MoreVertical, Smartphone, Package, DollarSign, Phone, CheckSquare, LayoutGrid } from 'lucide-react';
+import { Building2, FileText, CreditCard, Calendar as CalendarIcon, Share2, Check, Loader2, Upload, Save, Palette, Sun, Moon, Plus, Edit, Trash2, Eye, Download, Zap, Users, UserPlus, TrendingUp, CheckCircle, Link, Copy, Code, Key, Info, MoreVertical, Smartphone, Package, DollarSign, Phone, CheckSquare, LayoutGrid, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PhoneInput } from '@/components/ui/PhoneInput';
@@ -12,6 +12,10 @@ import CalendarSettings from './CalendarSettings';
 import { InviteMemberModal } from '@/components/settings/InviteMemberModal';
 
 import { usePreferencesStore } from '@/stores/preferencesStore';
+import ProfileTab from '@/components/settings/ProfileTab';
+import NotificationsTab from '@/components/settings/NotificationsTab';
+import SecurityTab from '@/components/settings/SecurityTab';
+import HelpCenterTab from '@/components/settings/HelpCenterTab';
 import toast from 'react-hot-toast';
 
 export default function Settings() {
@@ -21,7 +25,7 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'appearance' | 'mobile' | 'business' | 'billing' | 'templates' | 'payment' | 'calendar' | 'sharing'>('appearance');
+  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'mobile' | 'business' | 'billing' | 'templates' | 'payment' | 'calendar' | 'sharing' | 'notifications' | 'security' | 'help'>('profile');
   const [settings, setSettings] = useState<BusinessSettingsType | null>(null);
   const [quoteTemplates, setQuoteTemplates] = useState<DocumentTemplate[]>([]);
   const [invoiceTemplates, setInvoiceTemplates] = useState<DocumentTemplate[]>([]);
@@ -351,6 +355,7 @@ export default function Settings() {
 
           <div className="flex flex-wrap gap-2 mt-6">
             {[
+              { id: 'profile', label: 'Profile', icon: Building2 },
               { id: 'appearance', label: 'Appearance', icon: Palette },
               { id: 'mobile', label: 'Mobile Nav', icon: Smartphone, mobileOnly: true },
               { id: 'business', label: 'Business Info', icon: Building2 },
@@ -359,6 +364,9 @@ export default function Settings() {
               { id: 'payment', label: 'Payment Integration', icon: Zap },
               { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
               { id: 'sharing', label: 'Sharing', icon: Share2 },
+              { id: 'notifications', label: 'Notifications', icon: Users },
+              { id: 'security', label: 'Security', icon: Key },
+              { id: 'help', label: 'Help', icon: HelpCircle },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1643,6 +1651,11 @@ export default function Settings() {
 
           </div>
         )}
+
+        {activeTab === 'profile' && <ProfileTab />}
+        {activeTab === 'notifications' && <NotificationsTab />}
+        {activeTab === 'security' && <SecurityTab />}
+        {activeTab === 'help' && <HelpCenterTab />}
       </div>
       <InviteMemberModal
         isOpen={showInviteModal}

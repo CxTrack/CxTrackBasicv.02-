@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search, Plus, Filter, FileText, DollarSign, Download,
-  Clock, MoreVertical,
+  Clock, MoreVertical, List, Grid,
   Archive, CheckCircle2, Trash2,
   ArrowRight, Target, Zap
 } from 'lucide-react';
@@ -10,6 +10,8 @@ import { useQuoteStore } from '../stores/quoteStore';
 import { useOrganizationStore } from '../stores/organizationStore';
 import { useThemeStore } from '../stores/themeStore';
 import { PageContainer, Card, IconBadge } from '../components/theme/ThemeComponents';
+import { CompactStatsBar } from '../components/compact/CompactViews';
+import { ResizableTable, ColumnDef } from '../components/compact/ResizableTable';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import type { QuoteStatus } from '../types/app.types';
@@ -22,6 +24,7 @@ export default function Quotes() {
   const [selectedQuotes, setSelectedQuotes] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'compact' | 'table'>('compact');
 
   const { quotes, loading, fetchQuotes, deleteQuote } = useQuoteStore();
   const { currentOrganization, demoMode, getOrganizationId, currentMembership } = useOrganizationStore();
@@ -265,6 +268,23 @@ export default function Quotes() {
             />
           </div>
 
+          <div className="flex p-1 bg-slate-100 dark:bg-gray-700 rounded-lg h-[36px]">
+            <button
+              onClick={() => setViewMode('compact')}
+              className={`px-2 rounded-md transition-all ${viewMode === 'compact' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+              title="Compact View"
+            >
+              <List size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-2 rounded-md transition-all ${viewMode === 'table' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+              title="Table View"
+            >
+              <Grid size={18} />
+            </button>
+          </div>
+
           <button className="p-2 bg-slate-100 dark:bg-gray-700 rounded-lg text-slate-500 hover:text-slate-700 transition-all">
             <Filter size={18} />
           </button>
@@ -295,6 +315,95 @@ export default function Quotes() {
               </Link>
             )}
           </div>
+        ) : viewMode === 'compact' ? (
+          <>
+            {/* Compact Stats */}
+            <CompactStatsBar stats={[
+              { label: 'Total', value: filteredQuotes.length },
+              { label: 'Value', value: `$${(stats.totalValue / 1000).toFixed(1)}k` },
+              { label: 'Pending', value: stats.sentCount },
+              { label: 'Accepted', value: stats.acceptedCount },
+            ]} />
+
+            {/* Resizable Table */}
+            <ResizableTable
+              storageKey="quotes"
+              data={filteredQuotes}
+              onRowClick={(quote) => navigate(`/quotes/${quote.id}`)}
+              columns={[
+                {
+                  id: 'quote_number',
+                  header: 'Quote #',
+                  defaultWidth: 120,
+                  minWidth: 100,
+                  render: (quote) => (
+                    <div>
+                      <span className="font-semibold text-gray-900 dark:text-white">{quote.quote_number}</span>
+                      <span className="text-[11px] text-gray-400 block">v{quote.version}</span>
+                    </div>
+                  ),
+                },
+                {
+                  id: 'customer',
+                  header: 'Customer',
+                  defaultWidth: 200,
+                  minWidth: 120,
+                  render: (quote) => (
+                    <span className="text-gray-700 dark:text-gray-300 truncate block">{quote.customer_name}</span>
+                  ),
+                },
+                {
+                  id: 'amount',
+                  header: 'Amount',
+                  defaultWidth: 110,
+                  minWidth: 80,
+                  align: 'right',
+                  render: (quote) => (
+                    <span className="font-bold text-gray-900 dark:text-white">${quote.total_amount.toLocaleString()}</span>
+                  ),
+                },
+                {
+                  id: 'status',
+                  header: 'Status',
+                  defaultWidth: 100,
+                  minWidth: 80,
+                  render: (quote) => (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getStatusColor(quote.status)}`}>
+                      {quote.status}
+                    </span>
+                  ),
+                },
+                {
+                  id: 'date',
+                  header: 'Date',
+                  defaultWidth: 110,
+                  minWidth: 80,
+                  render: (quote) => (
+                    <span className="text-[11px] text-gray-500">{format(new Date(quote.quote_date), 'MMM dd, yyyy')}</span>
+                  ),
+                },
+                {
+                  id: 'actions',
+                  header: 'Actions',
+                  defaultWidth: 100,
+                  minWidth: 80,
+                  align: 'right',
+                  render: (quote) => (
+                    <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
+                      {(currentMembership?.role === 'owner' || currentMembership?.role === 'admin') && (
+                        <button onClick={(e) => handleDelete(e, quote.id)} className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded opacity-60 hover:opacity-100">
+                          <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
+                        </button>
+                      )}
+                      <button className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded opacity-60 hover:opacity-100">
+                        <MoreVertical className="w-3.5 h-3.5 text-gray-500" />
+                      </button>
+                    </div>
+                  ),
+                },
+              ] as ColumnDef[]}
+            />
+          </>
         ) : (
           <>
             {/* Desktop Table View */}
@@ -467,55 +576,57 @@ export default function Quotes() {
         )}
       </div>
 
-      {selectedQuotes.size > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border-2 border-slate-200 dark:border-slate-700 px-6 py-4">
-            <div className="flex items-center gap-6">
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                {selectedQuotes.size} selected
-              </span>
+      {
+        selectedQuotes.size > 0 && (
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border-2 border-slate-200 dark:border-slate-700 px-6 py-4">
+              <div className="flex items-center gap-6">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  {selectedQuotes.size} selected
+                </span>
 
-              <div className="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <div className="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
 
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={bulkMarkAccepted}
-                  className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors flex items-center gap-2"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  Mark Accepted
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={bulkMarkAccepted}
+                    className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Mark Accepted
+                  </button>
 
-                <button
-                  onClick={bulkArchive}
-                  className="px-4 py-2 bg-slate-600 text-white text-sm font-medium rounded-xl hover:bg-slate-700 transition-colors flex items-center gap-2"
-                >
-                  <Archive className="w-4 h-4" />
-                  Archive
-                </button>
+                  <button
+                    onClick={bulkArchive}
+                    className="px-4 py-2 bg-slate-600 text-white text-sm font-medium rounded-xl hover:bg-slate-700 transition-colors flex items-center gap-2"
+                  >
+                    <Archive className="w-4 h-4" />
+                    Archive
+                  </button>
 
-                <button
-                  onClick={bulkDelete}
-                  className="px-4 py-2 bg-rose-600 text-white text-sm font-medium rounded-xl hover:bg-rose-700 transition-colors flex items-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </button>
+                  <button
+                    onClick={bulkDelete}
+                    className="px-4 py-2 bg-rose-600 text-white text-sm font-medium rounded-xl hover:bg-rose-700 transition-colors flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setSelectedQuotes(new Set());
-                    setSelectAll(false);
-                  }}
-                  className="px-4 py-2 border-2 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                >
-                  Cancel
-                </button>
+                  <button
+                    onClick={() => {
+                      setSelectedQuotes(new Set());
+                      setSelectAll(false);
+                    }}
+                    className="px-4 py-2 border-2 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Report Generator Modal */}
       <ReportGenerator
@@ -523,6 +634,6 @@ export default function Quotes() {
         onClose={() => setShowReportModal(false)}
         defaultType="quotes"
       />
-    </PageContainer>
+    </PageContainer >
   );
 }

@@ -45,6 +45,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { BroadcastBanner } from '../components/BroadcastBanner';
+import { CoPilotIntro } from '../components/tour/SubtleHints';
+import { MiniAdminPanel } from '../components/admin/MiniAdminPanel';
 
 
 
@@ -52,16 +54,17 @@ type NavItem = {
   path: string;
   icon: any;
   label: string;
+  tourId?: string;
 };
 
 const DEFAULT_NAV_ITEMS: NavItem[] = [
-  { path: '/customers', icon: Users, label: 'Customers' },
-  { path: '/calendar', icon: Calendar, label: 'Calendar' },
+  { path: '/customers', icon: Users, label: 'Customers', tourId: 'customers' },
+  { path: '/calendar', icon: Calendar, label: 'Calendar', tourId: 'calendar' },
   { path: '/products', icon: Package, label: 'Products' },
   { path: '/quotes', icon: FileText, label: 'Quotes' },
   { path: '/invoices', icon: DollarSign, label: 'Invoices' },
   { path: '/calls', icon: Phone, label: 'Calls' },
-  { path: '/pipeline', icon: TrendingUp, label: 'Pipeline' },
+  { path: '/pipeline', icon: TrendingUp, label: 'Pipeline', tourId: 'pipeline' },
   { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
 ];
 
@@ -269,7 +272,7 @@ export const DashboardLayout: React.FC = () => {
           }`}
       >
         {/* Logo */}
-        <div className={theme === 'soft-modern' ? "p-6 border-b border-default" : "p-4 border-b border-gray-200 dark:border-gray-700"}>
+        <div className={theme === 'soft-modern' ? "p-6 border-b border-default" : "p-4 border-b border-gray-200 dark:border-gray-700"} data-tour="sidebar">
           <h1 className={theme === 'soft-modern' ? "text-xl font-semibold text-primary" : "text-xl font-bold text-gray-900 dark:text-white"}>CxTrack</h1>
         </div>
 
@@ -325,21 +328,30 @@ export const DashboardLayout: React.FC = () => {
             <span className="font-medium">{SETTINGS_ITEM.label}</span>
           </Link>
 
+        </nav>
+
+        {/* Pinned Chat Section */}
+        <div className={theme === 'soft-modern' ? "px-4 py-2" : "px-4 py-2 border-t border-gray-200 dark:border-gray-700"}>
           <Link
             to={CHAT_ITEM.path}
             className={
               theme === 'soft-modern'
-                ? `nav-item flex items-center px-4 py-3 ${isActive(CHAT_ITEM.path) ? 'active' : ''}`
-                : `flex items-center px-3 py-2 rounded-lg transition-colors ${isActive(CHAT_ITEM.path)
+                ? `nav-item flex items-center justify-between px-4 py-3 ${isActive(CHAT_ITEM.path) ? 'active' : ''}`
+                : `flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${isActive(CHAT_ITEM.path)
                   ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`
             }
           >
-            <CHAT_ITEM.icon size={20} className="mr-3" />
-            <span className="font-medium">{CHAT_ITEM.label}</span>
+            <div className="flex items-center">
+              <MessageCircle size={20} className="mr-3" />
+              <span className="font-medium">Team Chat</span>
+            </div>
+            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+              3
+            </span>
           </Link>
-        </nav>
+        </div>
 
         {/* User Profile */}
         <div className={theme === 'soft-modern' ? "p-4 border-t border-default" : "p-4 border-t border-gray-200 dark:border-gray-700"}>
@@ -352,21 +364,21 @@ export const DashboardLayout: React.FC = () => {
           >
             <div className="flex items-center">
               <div
-                className={theme === 'soft-modern' ? "w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold bg-gradient-to-br from-purple-600 to-blue-600 shadow-md" : "w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-md"}
+                className={theme === 'soft-modern' ? "w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br from-purple-600 to-blue-600 shadow-sm" : "w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm"}
               >
                 A
               </div>
               <div className="ml-3 text-left">
-                <p className={theme === 'soft-modern' ? "text-sm font-black text-primary" : "text-sm font-bold text-gray-900 dark:text-white"}>Admin User</p>
+                <p className={theme === 'soft-modern' ? "text-xs font-bold text-primary" : "text-xs font-bold text-gray-900 dark:text-white"}>Admin User</p>
                 {isSuperAdmin ? (
-                  <p className="text-[10px] text-purple-600 dark:text-purple-400 font-black uppercase tracking-wider">Super Admin</p>
+                  <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold uppercase tracking-wider">Super Admin</p>
                 ) : (
                   <p className={theme === 'soft-modern' ? "text-[10px] text-tertiary font-bold uppercase" : "text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase"}>Dev Mode</p>
                 )}
               </div>
             </div>
             {isSuperAdmin && (
-              <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400 stroke-[2.5px]" />
+              <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400 stroke-[2.5px]" />
             )}
           </button>
 
@@ -484,6 +496,10 @@ export const DashboardLayout: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Subtle CoPilot Introduction */}
+      <CoPilotIntro />
+      <MiniAdminPanel />
     </div>
   );
 };

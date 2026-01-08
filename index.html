@@ -26,6 +26,20 @@
         document.documentElement.classList.remove('dark');
       }
     </script>
+    
+    <!-- Google Places API - Replace YOUR_API_KEY with a valid key or set via .env -->
+    <script>
+      (function() {
+        // Check for API key - can be set via window.GOOGLE_MAPS_API_KEY or environment
+        var apiKey = window.GOOGLE_MAPS_API_KEY || '';
+        if (apiKey) {
+          var script = document.createElement('script');
+          script.src = 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&libraries=places';
+          script.async = true;
+          document.head.appendChild(script);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

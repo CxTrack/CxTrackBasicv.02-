@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     Phone, ArrowLeft, Download, Share2, Play, Pause,
     User, TrendingUp, TrendingDown,
-    MessageSquare, CheckCircle, Volume2, FileText, Tag, Mail
+    MessageSquare, CheckCircle, Volume2, FileText
 } from 'lucide-react';
 import { RetellCallData } from '@/types/retell.types';
 import { useThemeStore } from '@/stores/themeStore';
@@ -399,71 +399,76 @@ ${call.transcript_object.map(m => `[${formatTime(m.timestamp)}] ${m.role.toUpper
                             </div>
                         </div>
 
-                        {/* Call Metadata */}
-                        <div className={`rounded-2xl border-2 p-6 ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'}`}>
-                            <h3 className="text-lg font-bold mb-4">Call Information</h3>
-                            <div className="space-y-4">
-                                <MetadataRow label="Duration" value={formatDuration(call.duration_ms)} isDark={isDark} />
-                                <MetadataRow label="Type" value={call.call_type} isDark={isDark} isCapitalize />
-                                <MetadataRow
-                                    label="Status"
-                                    value={call.call_status}
-                                    isDark={isDark}
-                                    badge={call.call_status === 'completed' ? 'green' : 'gray'}
-                                />
-                                <MetadataRow label="Phone" value={call.phone_number} isDark={isDark} />
-                                {call.customer_email && (
-                                    <div className="flex justify-between items-center py-1">
-                                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Email</span>
-                                        <div className="flex items-center gap-1.5">
-                                            <Mail className="w-3.5 h-3.5 text-blue-500" />
-                                            <span className="text-sm font-bold">{call.customer_email}</span>
-                                            <span className="px-1.5 py-0.5 rounded bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-wider border border-green-500/20">
-                                                Captured
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
-                                <MetadataRow label="Interruptions" value={call.interruptions_count.toString()} isDark={isDark} />
-                            </div>
-                        </div>
-
-                        {/* Agent Performance */}
-                        <div className={`rounded-2xl border-2 p-6 ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'}`}>
-                            <h3 className="text-lg font-bold mb-4">Agent Performance</h3>
+                        {/* Call Metadata - Apple-Inspired Minimal Design */}
+                        <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-900/50 border border-gray-800/50' : 'bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm'}`}>
+                            <h3 className={`text-sm font-medium tracking-tight mb-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Call Information</h3>
                             <div className="space-y-5">
-                                <div>
-                                    <div className="flex justify-between mb-2">
-                                        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Clarity</span>
-                                        <span className="text-sm font-bold">{(call.agent_performance.clarity_score * 100).toFixed(0)}%</span>
-                                    </div>
-                                    <div className={`w-full h-2 rounded-full ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${call.agent_performance.clarity_score * 100}%` }} />
-                                    </div>
+                                {/* Duration - Hero stat */}
+                                <div className="text-center pb-5 border-b border-gray-100 dark:border-gray-800/50">
+                                    <p className={`text-4xl font-light tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                        {formatDuration(call.duration_ms)}
+                                    </p>
+                                    <p className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Duration</p>
                                 </div>
-                                <div className="flex justify-between p-3 rounded-lg bg-gray-500/5">
-                                    <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Avg Response</span>
-                                    <span className="text-sm font-bold text-blue-500">{call.agent_performance.response_time_avg}ms</span>
-                                </div>
-                                <div className="flex justify-between p-3 rounded-lg bg-gray-500/5">
-                                    <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Successes</span>
-                                    <span className="text-sm font-bold text-green-500">{call.agent_performance.successful_responses}</span>
+
+                                {/* Clean metadata rows */}
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Type</span>
+                                        <span className={`text-sm font-medium capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>{call.call_type}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Status</span>
+                                        <span className={`text-sm font-medium capitalize ${call.call_status === 'completed' ? 'text-green-600' :
+                                            isDark ? 'text-white' : 'text-gray-900'
+                                            }`}>{call.call_status}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Phone</span>
+                                        <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{call.phone_number}</span>
+                                    </div>
+                                    {call.customer_email && (
+                                        <div className="flex justify-between items-center">
+                                            <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Email</span>
+                                            <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{call.customer_email}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between items-center">
+                                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Interruptions</span>
+                                        <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{call.interruptions_count}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Key Topics */}
-                        <div className={`rounded-2xl border-2 p-6 ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'}`}>
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-orange-600">
-                                <Tag className="w-5 h-5" />
-                                Key Topics
-                            </h3>
+                        {/* Agent Performance - Minimal */}
+                        <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-900/50 border border-gray-800/50' : 'bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm'}`}>
+                            <h3 className={`text-sm font-medium tracking-tight mb-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Agent Performance</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Clarity</span>
+                                        <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{(call.agent_performance.clarity_score * 100).toFixed(0)}%</span>
+                                    </div>
+                                    <div className={`w-full h-1.5 rounded-full ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                                        <div className="bg-green-500 h-1.5 rounded-full transition-all" style={{ width: `${call.agent_performance.clarity_score * 100}%` }} />
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Avg Response</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{call.agent_performance.response_time_avg}ms</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Key Topics - Minimal */}
+                        <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-900/50 border border-gray-800/50' : 'bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm'}`}>
+                            <h3 className={`text-sm font-medium tracking-tight mb-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Topics</h3>
                             <div className="flex flex-wrap gap-2">
                                 {call.key_topics.map((topic, index) => (
                                     <span
                                         key={index}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold ${isDark ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'bg-orange-50 text-orange-700 border border-orange-100'
-                                            }`}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-medium ${isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
                                     >
                                         {topic}
                                     </span>
@@ -477,20 +482,7 @@ ${call.transcript_object.map(m => `[${formatTime(m.timestamp)}] ${m.role.toUpper
     );
 };
 
-// Sub-components
-const MetadataRow = ({ label, value, isDark, isCapitalize, badge }: any) => (
-    <div className="flex justify-between items-center py-1">
-        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{label}</span>
-        {badge ? (
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${badge === 'green' ? 'bg-green-500/20 text-green-500' : 'bg-gray-500/20 text-gray-500'
-                }`}>
-                {value}
-            </span>
-        ) : (
-            <span className={`text-sm font-bold ${isCapitalize ? 'capitalize' : ''}`}>{value}</span>
-        )}
-    </div>
-);
+
 
 // Helper functions
 const formatDuration = (ms: number) => {

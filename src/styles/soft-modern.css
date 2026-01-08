@@ -1,44 +1,71 @@
-/* Elite Soft-Modern Theme - Premium Minimalist Design */
+/* Elite Soft-Modern Theme - Google Material 3 / Neumorphic Refresh 2026 */
 
 /* ============================================
-   DESIGN TOKENS
+   DESIGN TOKENS - Enhanced for Material 3
    ============================================ */
 
 :root {
-  /* Background Layers */
-  --sm-bg-base: #FAFAF9;
+  /* Background Layers - Warmer tone */
+  --sm-bg-base: #F1F3F4;
+  /* Google gray-100 */
   --sm-bg-surface: #FFFFFF;
   --sm-bg-elevated: #FFFFFF;
+  --sm-bg-hover: #E8EAED;
+  /* Google gray-200 */
 
   /* Text Hierarchy */
-  --sm-text-primary: #171717;
-  --sm-text-secondary: #525252;
-  --sm-text-tertiary: #A3A3A3;
-  --sm-text-disabled: #D4D4D4;
+  --sm-text-primary: #202124;
+  /* Google gray-900 */
+  --sm-text-secondary: #5F6368;
+  /* Google gray-700 */
+  --sm-text-tertiary: #9AA0A6;
+  /* Google gray-500 */
+  --sm-text-disabled: #DADCE0;
+  /* Google gray-300 */
 
-  /* Borders & Dividers */
-  --sm-border-subtle: #F5F5F4;
-  --sm-border-default: #E7E5E4;
-  --sm-border-strong: #D6D3D1;
+  /* Borders & Dividers - Subtler */
+  --sm-border-subtle: rgba(0, 0, 0, 0.04);
+  --sm-border-default: rgba(0, 0, 0, 0.08);
+  --sm-border-strong: rgba(0, 0, 0, 0.12);
 
-  /* Accents (used sparingly) */
-  --sm-accent-primary: #3B82F6;
-  --sm-accent-success: #10B981;
-  --sm-accent-warning: #F59E0B;
-  --sm-accent-error: #EF4444;
-  --sm-accent-info: #6366F1;
+  /* Accents - Google-inspired vibrant colors */
+  --sm-accent-primary: #1A73E8;
+  /* Google Blue */
+  --sm-accent-success: #1E8E3E;
+  /* Google Green */
+  --sm-accent-warning: #F9AB00;
+  /* Google Yellow */
+  --sm-accent-error: #D93025;
+  /* Google Red */
+  --sm-accent-info: #8430CE;
+  /* Google Purple */
 
-  /* Shadows (ultra-subtle) */
-  --sm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --sm-shadow-md: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --sm-shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
-  --sm-shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.02);
+  /* Neumorphic Shadows (Subtle, Material 3 inspired) */
+  --sm-shadow-neumorphic-raised:
+    4px 4px 8px rgba(166, 174, 178, 0.2),
+    -2px -2px 6px rgba(255, 255, 255, 0.85);
+  --sm-shadow-neumorphic-inset:
+    inset 2px 2px 4px rgba(166, 174, 178, 0.15),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.7);
+  --sm-shadow-neumorphic-hover:
+    6px 6px 12px rgba(166, 174, 178, 0.25),
+    -4px -4px 8px rgba(255, 255, 255, 0.9);
+  --sm-shadow-neumorphic-pressed:
+    inset 3px 3px 6px rgba(166, 174, 178, 0.2),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.6);
 
-  /* Border Radius */
-  --sm-radius-sm: 6px;
-  --sm-radius-md: 8px;
-  --sm-radius-lg: 12px;
-  --sm-radius-xl: 16px;
+  /* Material Design Floating Shadows */
+  --sm-shadow-sm: 0 1px 2px rgba(60, 64, 67, 0.08);
+  --sm-shadow-md: 0 1px 3px rgba(60, 64, 67, 0.08), 0 4px 8px rgba(60, 64, 67, 0.06);
+  --sm-shadow-lg: 0 2px 6px rgba(60, 64, 67, 0.08), 0 8px 16px rgba(60, 64, 67, 0.08);
+  --sm-shadow-xl: 0 4px 8px rgba(60, 64, 67, 0.08), 0 16px 32px rgba(60, 64, 67, 0.1);
+
+  /* Border Radius - Rounder for Material 3 */
+  --sm-radius-sm: 8px;
+  --sm-radius-md: 12px;
+  --sm-radius-lg: 16px;
+  --sm-radius-xl: 20px;
+  --sm-radius-2xl: 24px;
   --sm-radius-full: 9999px;
 
   /* Spacing (4px base unit) */
@@ -50,6 +77,11 @@
   --sm-space-2xl: 32px;
   --sm-space-3xl: 48px;
   --sm-space-4xl: 64px;
+
+  /* Transitions - Snappy Google-style */
+  --sm-transition-fast: 100ms cubic-bezier(0.2, 0, 0, 1);
+  --sm-transition-normal: 200ms cubic-bezier(0.2, 0, 0, 1);
+  --sm-transition-slow: 350ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* ============================================
@@ -65,25 +97,26 @@
 }
 
 /* ============================================
-   CARDS
+   CARDS - Neumorphic Style
    ============================================ */
 
 .soft-modern .card {
   background: var(--sm-bg-surface);
-  border: 1px solid var(--sm-border-default);
-  border-radius: var(--sm-radius-lg);
-  box-shadow: var(--sm-shadow-sm);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--sm-border-subtle);
+  border-radius: var(--sm-radius-xl);
+  box-shadow: var(--sm-shadow-neumorphic-raised);
+  transition: all var(--sm-transition-normal);
 }
 
 .soft-modern .card:hover {
-  box-shadow: var(--sm-shadow-md);
+  box-shadow: var(--sm-shadow-neumorphic-hover);
+  transform: translateY(-2px);
 }
 
 .soft-modern .card-elevated {
   background: var(--sm-bg-elevated);
   border: 1px solid var(--sm-border-subtle);
-  border-radius: var(--sm-radius-lg);
+  border-radius: var(--sm-radius-xl);
   box-shadow: var(--sm-shadow-lg);
 }
 

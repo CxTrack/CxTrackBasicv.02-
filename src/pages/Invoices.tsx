@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search, Plus, Filter, FileText,
-  AlertCircle, Clock, MoreVertical,
+  AlertCircle, Clock, MoreVertical, List, Grid,
   Download, Eye, Edit, Send, Trash2, Archive, CheckCircle2,
   ArrowRight, Wallet, CreditCard
 } from 'lucide-react';
@@ -10,6 +10,8 @@ import { useInvoiceStore } from '../stores/invoiceStore';
 import { useOrganizationStore } from '../stores/organizationStore';
 import { useThemeStore } from '../stores/themeStore';
 import { PageContainer, Card, IconBadge } from '../components/theme/ThemeComponents';
+import { CompactStatsBar } from '../components/compact/CompactViews';
+import { ResizableTable, ColumnDef } from '../components/compact/ResizableTable';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import type { InvoiceStatus } from '../types/app.types';
@@ -23,6 +25,7 @@ export default function Invoices() {
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'compact' | 'table'>('compact');
 
   const { invoices, loading, fetchInvoices, deleteInvoice } = useInvoiceStore();
   const { currentOrganization, demoMode, getOrganizationId, currentMembership } = useOrganizationStore();
@@ -345,6 +348,23 @@ export default function Invoices() {
             />
           </div>
 
+          <div className="flex p-1 bg-slate-100 dark:bg-gray-700 rounded-lg h-[36px]">
+            <button
+              onClick={() => setViewMode('compact')}
+              className={`px-2 rounded-md transition-all ${viewMode === 'compact' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+              title="Compact View"
+            >
+              <List size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-2 rounded-md transition-all ${viewMode === 'table' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+              title="Table View"
+            >
+              <Grid size={18} />
+            </button>
+          </div>
+
           <button className="p-2 bg-slate-100 dark:bg-gray-700 rounded-lg text-slate-500 hover:text-slate-700 transition-all">
             <Filter size={18} />
           </button>
@@ -375,6 +395,124 @@ export default function Invoices() {
               </Link>
             )}
           </div>
+        ) : viewMode === 'compact' ? (
+          <>
+            {/* Compact Stats */}
+            <CompactStatsBar stats={[
+              { label: 'Total', value: filteredInvoices.length },
+              { label: 'Revenue', value: `$${(stats.totalValue / 1000).toFixed(1)}k` },
+              { label: 'Paid', value: `$${(stats.totalPaid / 1000).toFixed(1)}k` },
+              { label: 'Outstanding', value: `$${(stats.totalOutstanding / 1000).toFixed(1)}k` },
+            ]} />
+
+            {/* Resizable Table */}
+            <ResizableTable
+              storageKey="invoices"
+              data={filteredInvoices}
+              onRowClick={(invoice) => navigate(`/invoices/${invoice.id}`)}
+              columns={[
+                {
+                  id: 'invoice_number',
+                  header: 'Invoice #',
+                  defaultWidth: 140,
+                  minWidth: 100,
+                  render: (invoice) => (
+                    <div>
+                      <span className="font-semibold text-gray-900 dark:text-white">{invoice.invoice_number}</span>
+                      <span className="text-[11px] text-gray-400 block">{format(new Date(invoice.invoice_date), 'MMM dd')}</span>
+                    </div>
+                  ),
+                },
+                {
+                  id: 'customer',
+                  header: 'Customer',
+                  defaultWidth: 180,
+                  minWidth: 120,
+                  render: (invoice) => (
+                    <span className="text-gray-700 dark:text-gray-300 truncate block">{invoice.customer_name}</span>
+                  ),
+                },
+                {
+                  id: 'amount',
+                  header: 'Amount',
+                  defaultWidth: 100,
+                  minWidth: 80,
+                  align: 'right',
+                  render: (invoice) => (
+                    <span className="font-bold text-gray-900 dark:text-white">${invoice.total_amount.toLocaleString()}</span>
+                  ),
+                },
+                {
+                  id: 'paid',
+                  header: 'Paid',
+                  defaultWidth: 90,
+                  minWidth: 70,
+                  align: 'right',
+                  render: (invoice) => (
+                    <span className="text-green-600 font-medium">${invoice.amount_paid.toLocaleString()}</span>
+                  ),
+                },
+                {
+                  id: 'due',
+                  header: 'Due',
+                  defaultWidth: 90,
+                  minWidth: 70,
+                  align: 'right',
+                  render: (invoice) => (
+                    <span className={invoice.amount_due > 0 ? 'text-red-600 font-medium' : 'text-gray-400'}>
+                      ${invoice.amount_due.toLocaleString()}
+                    </span>
+                  ),
+                },
+                {
+                  id: 'status',
+                  header: 'Status',
+                  defaultWidth: 100,
+                  minWidth: 80,
+                  render: (invoice) => (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getStatusColor(invoice.status)}`}>
+                      {invoice.status}
+                    </span>
+                  ),
+                },
+                {
+                  id: 'due_date',
+                  header: 'Due Date',
+                  defaultWidth: 90,
+                  minWidth: 70,
+                  render: (invoice) => (
+                    <span className="text-[11px] text-gray-500">{format(new Date(invoice.due_date), 'MMM dd')}</span>
+                  ),
+                },
+                {
+                  id: 'actions',
+                  header: 'Actions',
+                  defaultWidth: 100,
+                  minWidth: 80,
+                  align: 'right',
+                  render: (invoice) => (
+                    <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
+                      <button className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded opacity-60 hover:opacity-100">
+                        <Download className="w-3.5 h-3.5 text-gray-500" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveDropdown(activeDropdown === invoice.id ? null : invoice.id);
+                        }}
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded opacity-60 hover:opacity-100 relative"
+                      >
+                        <MoreVertical className="w-3.5 h-3.5 text-gray-500" />
+                        {activeDropdown === invoice.id && (
+                          <ActionsDropdown invoice={invoice} onClose={() => setActiveDropdown(null)} />
+                        )}
+                      </button>
+                    </div>
+                  ),
+                },
+              ] as ColumnDef[]}
+            />
+          </>
         ) : (
           <>
             {/* Desktop Table View */}

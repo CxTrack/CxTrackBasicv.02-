@@ -3,7 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { CoPilotProvider } from './contexts/CoPilotContext';
 import { DashboardLayout } from './layouts/DashboardLayout';
-import { Dashboard } from './pages/Dashboard';
+import { DashboardPage } from './pages/DashboardPage';
 import { Customers } from './pages/Customers';
 import { CustomerProfile } from './pages/CustomerProfile';
 import CustomerForm from './pages/customers/CustomerForm';
@@ -53,7 +53,7 @@ function App() {
 
               <Route path="/" element={<DashboardLayout />}>
                 <Route index element={<Navigate to="/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="customers" element={<Customers />} />
                 <Route path="customers/new" element={<CustomerForm />} />
                 <Route path="customers/:id" element={<CustomerProfile />} />
