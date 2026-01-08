@@ -33,6 +33,7 @@ export const VoiceAgentSetup = () => {
         agent_name: '',
         business_name: '',
         industry: '',
+        customIndustry: '',
         business_description: '',
         agent_tone: 'professional' as AgentTone,
         greeting_script: '',
@@ -49,10 +50,12 @@ export const VoiceAgentSetup = () => {
 
     useEffect(() => {
         if (config) {
+            const isKnownIndustry = INDUSTRY_OPTIONS.includes(config.industry);
             setFormData({
                 agent_name: config.agent_name || '',
                 business_name: config.business_name || '',
-                industry: config.industry || '',
+                industry: isKnownIndustry ? config.industry : 'Other',
+                customIndustry: isKnownIndustry ? '' : config.industry || '',
                 business_description: config.business_description || '',
                 agent_tone: config.agent_tone || 'professional',
                 greeting_script: config.greeting_script || "Hello! Thank you for calling {business_name}. How can I help you today?",
@@ -69,6 +72,7 @@ export const VoiceAgentSetup = () => {
         try {
             await saveConfig({
                 ...formData,
+                industry: formData.industry === 'Other' ? formData.customIndustry : formData.industry,
                 setup_step: currentStep,
             });
             toast.success('Progress saved');
@@ -175,8 +179,8 @@ export const VoiceAgentSetup = () => {
                             onClick={handleToggleActive}
                             disabled={saving}
                             className={`px-4 py-2 rounded-xl font-medium transition-colors ${config?.is_active
-                                    ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400'
-                                    : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
                                 }`}
                         >
                             {config?.is_active ? (
@@ -227,10 +231,10 @@ export const VoiceAgentSetup = () => {
                         {STEPS.map((step, index) => (
                             <div key={step.id} className="flex items-center">
                                 <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold transition-colors ${currentStep > index
-                                        ? 'bg-green-500 text-white'
-                                        : currentStep === index
-                                            ? 'bg-purple-600 text-white'
-                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
+                                    ? 'bg-green-500 text-white'
+                                    : currentStep === index
+                                        ? 'bg-purple-600 text-white'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
                                     }`}>
                                     {currentStep > index ? <Check className="w-5 h-5" /> : index + 1}
                                 </div>
@@ -294,7 +298,17 @@ export const VoiceAgentSetup = () => {
                                         {INDUSTRY_OPTIONS.map(opt => (
                                             <option key={opt} value={opt}>{opt}</option>
                                         ))}
+                                        <option value="Other">Other</option>
                                     </select>
+                                    {formData.industry === 'Other' && (
+                                        <input
+                                            type="text"
+                                            placeholder="Enter your industry"
+                                            value={formData.customIndustry}
+                                            onChange={(e) => setFormData({ ...formData, customIndustry: e.target.value })}
+                                            className="mt-2 w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 dark:text-white"
+                                        />
+                                    )}
                                 </div>
 
                                 <div>
@@ -326,8 +340,8 @@ export const VoiceAgentSetup = () => {
                                                 key={tone}
                                                 onClick={() => setFormData({ ...formData, agent_tone: tone })}
                                                 className={`p-4 rounded-xl border-2 text-left transition-all ${formData.agent_tone === tone
-                                                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                                                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                                                     }`}
                                             >
                                                 <p className="font-semibold text-gray-900 dark:text-white capitalize">{tone}</p>
@@ -401,8 +415,8 @@ export const VoiceAgentSetup = () => {
                                                 key={opt.value}
                                                 onClick={() => setFormData({ ...formData, handling_preference: opt.value as HandlingPreference })}
                                                 className={`w-full p-4 rounded-xl border-2 text-left transition-all ${formData.handling_preference === opt.value
-                                                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                                                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                                                     }`}
                                             >
                                                 <p className="font-semibold text-gray-900 dark:text-white">{opt.label}</p>

@@ -97,7 +97,6 @@ const INDUSTRY_OPTIONS = [
     'Home Services',
     'Retail / E-commerce',
     'Non-Profit',
-    'Other',
 ];
 
 const TONE_DESCRIPTIONS: Record<AgentTone, string> = {
