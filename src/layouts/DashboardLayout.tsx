@@ -46,7 +46,6 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { BroadcastBanner } from '../components/BroadcastBanner';
 import { CoPilotIntro } from '../components/tour/SubtleHints';
-import { MiniAdminPanel } from '../components/admin/MiniAdminPanel';
 
 
 
@@ -499,7 +498,6 @@ export const DashboardLayout: React.FC = () => {
 
       {/* Subtle CoPilot Introduction */}
       <CoPilotIntro />
-      <MiniAdminPanel />
     </div>
   );
 };
