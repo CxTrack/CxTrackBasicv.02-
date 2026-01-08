@@ -5,12 +5,13 @@ import { Opportunity } from '@/types/database.types';
 import { format } from 'date-fns';
 import {
     MoreVertical, FileText, CheckCircle, XCircle,
-    Edit2, Calendar, Target, TrendingUp
+    Edit2, Calendar, Target, TrendingUp, Info
 } from 'lucide-react';
 import { Card, Badge } from '@/components/theme/ThemeComponents';
 
 export default function OpportunitiesTable() {
     const { opportunities, loading, markOpportunityWon, markOpportunityLost } = useCRMStore();
+    const [showProbabilityInfo, setShowProbabilityInfo] = React.useState(false);
     const { theme } = useThemeStore();
 
     const getStageVariant = (stage: string) => {
@@ -44,7 +45,28 @@ export default function OpportunitiesTable() {
                             <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Opportunity</th>
                             <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stage</th>
                             <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Value</th>
-                            <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Probability</th>
+                            <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <div className="flex items-center gap-1 relative">
+                                    Probability
+                                    <button
+                                        onClick={() => setShowProbabilityInfo(!showProbabilityInfo)}
+                                        onMouseEnter={() => setShowProbabilityInfo(true)}
+                                        onMouseLeave={() => setShowProbabilityInfo(false)}
+                                        className="p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                        title="What is Probability?"
+                                    >
+                                        <Info size={12} className="text-gray-400" />
+                                    </button>
+                                    {showProbabilityInfo && (
+                                        <div className="absolute z-50 top-full left-0 mt-1 w-64 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-left normal-case tracking-normal">
+                                            <p className="text-xs text-gray-600 dark:text-gray-300 font-normal leading-relaxed">
+                                                <strong className="text-gray-900 dark:text-white">Win Probability (%)</strong><br />
+                                                The estimated likelihood of closing this opportunity successfully. Used to calculate weighted pipeline value (Value × Probability).
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </th>
                             <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Weighted</th>
                             <th className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expected Close</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
