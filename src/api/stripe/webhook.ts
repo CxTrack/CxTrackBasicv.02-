@@ -1,3 +1,4 @@
+import type Stripe from 'stripe';
 import { stripe } from '@/lib/stripe';
 import { supabase } from '@/lib/supabase';
 
@@ -23,6 +24,12 @@ export async function POST(request: Request) {
         case 'customer.subscription.updated': {
             const subscription = event.data.object as Stripe.Subscription;
             await handleSubscriptionUpdate(subscription);
+            break;
+        }
+
+        case 'customer.subscription.deleted': {
+            const canceledSubscription = event.data.object as Stripe.Subscription;
+            await handleSubscriptionCanceled(canceledSubscription);
             break;
         }
 
@@ -75,6 +82,49 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
         .eq('id', org.id);
 }
 
+async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
+    const { data: org } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('stripe_customer_id', subscription.customer as string)
+        .single();
+
+    if (!org) return;
+
+    // Update subscription record with canceled status and timestamp
+    await supabase
+        .from('subscriptions')
+        .update({
+            status: 'canceled',
+            canceled_at: new Date().toISOString(),
+            cancel_at_period_end: false,
+        })
+        .eq('stripe_subscription_id', subscription.id);
+
+    // Update organization status
+    await supabase
+        .from('organizations')
+        .update({
+            status: 'cancelled',
+            plan: 'free',
+        })
+        .eq('id', org.id);
+
+    // Log the cancellation event for churn tracking
+    await supabase
+        .from('audit_logs')
+        .insert({
+            organization_id: org.id,
+            action: 'subscription_canceled',
+            resource_type: 'subscription',
+            resource_id: subscription.id,
+            changes: {
+                canceled_at: new Date().toISOString(),
+                reason: subscription.cancellation_details?.reason || 'unknown',
+            },
+        });
+}
+
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
     const { data: org } = await supabase
         .from('organizations')
@@ -101,6 +151,33 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-    // Send notification, update org status, etc.
+    const { data: org } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('stripe_customer_id', invoice.customer as string)
+        .single();
+
+    if (!org) return;
+
+    // Update subscription to past_due
+    await supabase
+        .from('subscriptions')
+        .update({ status: 'past_due' })
+        .eq('stripe_customer_id', invoice.customer as string);
+
+    // Log the failed payment
+    await supabase
+        .from('audit_logs')
+        .insert({
+            organization_id: org.id,
+            action: 'payment_failed',
+            resource_type: 'invoice',
+            resource_id: invoice.id,
+            changes: {
+                amount_due: invoice.amount_due,
+                attempt_count: invoice.attempt_count,
+            },
+        });
+
     console.log('Payment failed for invoice:', invoice.id);
 }

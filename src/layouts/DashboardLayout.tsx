@@ -22,6 +22,7 @@ import {
   TrendingUp,
   Shield,
   MessageCircle,
+  BarChart3,
 } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
@@ -267,8 +268,10 @@ export const DashboardLayout: React.FC = () => {
       <BroadcastBanner />
       {/* Desktop Sidebar - Hidden on Mobile */}
       <aside
-        className={`${theme === 'soft-modern' ? "hidden md:flex md:flex-col md:w-64 sidebar" : "hidden md:flex md:flex-col md:w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"} transition-all duration-300 ${isCoPilotOpen && panelSide === 'left' ? 'md:ml-[400px]' : ''
-          }`}
+        className={`hidden md:flex md:flex-col md:w-64 transition-all duration-300 ${theme === 'soft-modern'
+            ? 'bg-white border-r border-gray-200/60'
+            : 'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700'
+          } ${isCoPilotOpen && panelSide === 'left' ? 'md:ml-[400px]' : ''}`}
       >
         {/* Logo */}
         <div className={theme === 'soft-modern' ? "p-6 border-b border-default" : "p-4 border-b border-gray-200 dark:border-gray-700"} data-tour="sidebar">
@@ -349,6 +352,22 @@ export const DashboardLayout: React.FC = () => {
             <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
               3
             </span>
+          </Link>
+
+          {/* Reports Link */}
+          <Link
+            to="/reports"
+            className={
+              theme === 'soft-modern'
+                ? `nav-item flex items-center px-4 py-3 mt-1 ${isActive('/reports') ? 'active' : ''}`
+                : `flex items-center px-3 py-2 mt-1 rounded-lg transition-colors ${isActive('/reports')
+                  ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`
+            }
+          >
+            <BarChart3 size={20} className="mr-3" />
+            <span className="font-medium">Reports</span>
           </Link>
         </div>
 

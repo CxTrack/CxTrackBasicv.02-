@@ -3,11 +3,22 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     Phone, ArrowLeft, Download, Share2, Play, Pause,
     User, TrendingUp, TrendingDown,
-    MessageSquare, CheckCircle, Volume2, FileText
+    MessageSquare, CheckCircle, Volume2, FileText, HelpCircle
 } from 'lucide-react';
 import { RetellCallData } from '@/types/retell.types';
 import { useThemeStore } from '@/stores/themeStore';
 import toast from 'react-hot-toast';
+
+// Tooltip Component for explanatory hints
+const Tooltip = ({ text, children }: { text: string; children: React.ReactNode }) => (
+    <div className="relative group inline-flex items-center">
+        {children}
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-normal w-48 text-center z-50 shadow-lg">
+            {text}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700" />
+        </div>
+    </div>
+);
 
 // Mock Data for Visualization
 const MOCK_CALL_DATA: RetellCallData = {
@@ -357,7 +368,12 @@ ${call.transcript_object.map(m => `[${formatTime(m.timestamp)}] ${m.role.toUpper
 
                         {/* Sentiment Analysis */}
                         <div className={`rounded-2xl border-2 p-6 ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'}`}>
-                            <h3 className="text-lg font-bold mb-4">Sentiment Analysis</h3>
+                            <div className="flex items-center gap-2 mb-4">
+                                <h3 className="text-lg font-bold">Sentiment Analysis</h3>
+                                <Tooltip text="AI-analyzed emotional tone of the conversation. Shows how the customer felt throughout the call.">
+                                    <HelpCircle className={`w-4 h-4 cursor-help ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                                </Tooltip>
+                            </div>
 
                             <div className={`p-4 rounded-xl border-2 mb-6 ${call.sentiment === 'positive'
                                 ? (isDark ? 'bg-green-900/20 border-green-800/50' : 'bg-green-50 border-green-100')
@@ -379,7 +395,12 @@ ${call.transcript_object.map(m => `[${formatTime(m.timestamp)}] ${m.role.toUpper
                             </div>
 
                             <div>
-                                <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Flow Chart</p>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <p className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Flow Chart</p>
+                                    <Tooltip text="Visualizes how customer sentiment changed over the call duration. Above the line = positive, below = negative.">
+                                        <HelpCircle className={`w-3 h-3 cursor-help ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                                    </Tooltip>
+                                </div>
                                 <div className={`h-24 rounded-xl p-3 relative overflow-hidden ${isDark ? 'bg-black/20' : 'bg-gray-50'}`}>
                                     <svg className="w-full h-full" viewBox="0 0 300 80">
                                         <polyline
@@ -443,11 +464,21 @@ ${call.transcript_object.map(m => `[${formatTime(m.timestamp)}] ${m.role.toUpper
 
                         {/* Agent Performance - Minimal */}
                         <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-900/50 border border-gray-800/50' : 'bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm'}`}>
-                            <h3 className={`text-sm font-medium tracking-tight mb-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Agent Performance</h3>
+                            <div className="flex items-center gap-2 mb-5">
+                                <h3 className={`text-sm font-medium tracking-tight ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Agent Performance</h3>
+                                <Tooltip text="Metrics measuring AI agent effectiveness including speech clarity and response speed.">
+                                    <HelpCircle className={`w-3 h-3 cursor-help ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                                </Tooltip>
+                            </div>
                             <div className="space-y-4">
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Clarity</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Clarity</span>
+                                            <Tooltip text="How clearly the agent communicated. Higher = easier for customer to understand.">
+                                                <HelpCircle className={`w-3 h-3 cursor-help ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                                            </Tooltip>
+                                        </div>
                                         <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{(call.agent_performance.clarity_score * 100).toFixed(0)}%</span>
                                     </div>
                                     <div className={`w-full h-1.5 rounded-full ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
@@ -455,7 +486,12 @@ ${call.transcript_object.map(m => `[${formatTime(m.timestamp)}] ${m.role.toUpper
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Avg Response</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Avg Response</span>
+                                        <Tooltip text="Average time the AI took to respond. Lower = faster, more natural conversation.">
+                                            <HelpCircle className={`w-3 h-3 cursor-help ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                                        </Tooltip>
+                                    </div>
                                     <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{call.agent_performance.response_time_avg}ms</span>
                                 </div>
                             </div>
@@ -463,7 +499,12 @@ ${call.transcript_object.map(m => `[${formatTime(m.timestamp)}] ${m.role.toUpper
 
                         {/* Key Topics - Minimal */}
                         <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-900/50 border border-gray-800/50' : 'bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm'}`}>
-                            <h3 className={`text-sm font-medium tracking-tight mb-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Topics</h3>
+                            <div className="flex items-center gap-2 mb-4">
+                                <h3 className={`text-sm font-medium tracking-tight ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Topics</h3>
+                                <Tooltip text="Main subjects discussed during the call, automatically extracted by AI.">
+                                    <HelpCircle className={`w-3 h-3 cursor-help ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                                </Tooltip>
+                            </div>
                             <div className="flex flex-wrap gap-2">
                                 {call.key_topics.map((topic, index) => (
                                     <span
